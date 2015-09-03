@@ -3,3 +3,10 @@
 stampy.*
 /build
 /pom.xml
+/stampy-core/target/
+/mina/target/
+/netty/target/
+/examples/target/
+/nbactions.xml
+/client-server/target/
+/target/
