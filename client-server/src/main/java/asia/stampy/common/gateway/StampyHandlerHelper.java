@@ -76,7 +76,7 @@ public class StampyHandlerHelper {
       try {
         errorHandle(e1, hostPort);
       } catch (Exception e2) {
-        log.error("Could not parse message {} for {}", msg, hostPort, e);
+        log.error("Could not parse message {} for {}", msg, hostPort);
         log.error("Unexpected exception sending error message for {}", hostPort, e2);
       }
     }
