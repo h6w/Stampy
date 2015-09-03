@@ -109,19 +109,7 @@ public abstract class AbstractMessage<HDR extends StampyMessageHeader> implement
     } catch (IOException e) {
       log.warn("Can't serialize the message body: " + e.toString());
     }
-<<<<<<< HEAD:src/asia/stampy/common/message/AbstractMessage.java
-    
     return bOut.toByteArray();  
-=======
-    builder.append("\n\n");
-    if( this.messageType.hasBody() && body != null ){
-        builder.append(body);
-    }
-
-    builder.append(StompMessageParser.EOM);
-
-    return builder.toString();
->>>>>>> b023e52cd1af7789674c1a3f20fb6df7a76be3cc:stampy-core/src/main/java/asia/stampy/common/message/AbstractMessage.java
   }
 
   /**
