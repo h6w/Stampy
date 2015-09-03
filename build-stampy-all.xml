@@ -71,7 +71,7 @@
 	</path>
 
 	<path id="stampy.src">
-		<fileset dir="${basedir}/src" />
+		<fileset dir="${basedir}/stampy-core/src" />
 		<fileset dir="${basedir}/client-server" />
 		<fileset dir="${basedir}/mina" />
 		<fileset dir="${basedir}/netty" />
@@ -82,7 +82,7 @@
 
 	<target name="compile.stampy.all">
 		<javac target="1.5" source="1.5" debug="true" destdir="${basedir}/build/bin">
-			<src path="${basedir}/src" />
+			<src path="${basedir}/stampy-core/src" />
 			<src path="${basedir}/client-server" />
 			<src path="${basedir}/mina" />
 			<src path="${basedir}/netty" />

@@ -114,7 +114,7 @@
 		<javadoc 
 			overview="${basedir}/build/tmp/Overview-stampy-NETTY.html" 
 			classpathref="stampy.classpath" 
-			sourcepath="${basedir}/src;${basedir}/netty;${basedir}/client-server" 
+			sourcepath="${basedir}/stampy-core/src;${basedir}/netty;${basedir}/client-server" 
 			packagenames="asia.stampy.*" 
 			destdir="${basedir}/build/javadoc">
 		</javadoc>
