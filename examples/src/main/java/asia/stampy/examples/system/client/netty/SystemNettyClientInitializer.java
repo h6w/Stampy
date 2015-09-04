@@ -18,6 +18,8 @@
  */
 package asia.stampy.examples.system.client.netty;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import asia.stampy.client.listener.validate.ClientMessageValidationListener;
 import asia.stampy.client.netty.ClientNettyChannelHandler;
 import asia.stampy.client.netty.connected.NettyConnectedMessageListener;
@@ -51,8 +53,13 @@ public class SystemNettyClientInitializer {
     StampyHeartbeatContainer heartbeatContainer = new HeartbeatContainer();
 
     NettyAutoTerminatingClientGateway gateway = new NettyAutoTerminatingClientGateway();
-    gateway.setPort(1234);
-    gateway.setHost("localhost");
+    try {
+        gateway.setURI(new URI("stomp://localhost:1234/"));
+    }
+    catch (URISyntaxException e) {
+        System.err.println(e);
+    }
+
     gateway.setHeartbeat(1000);
 
     ClientNettyChannelHandler channelHandler = new ClientNettyChannelHandler();

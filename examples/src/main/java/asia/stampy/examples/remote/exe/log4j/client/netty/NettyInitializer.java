@@ -18,6 +18,8 @@
  */
 package asia.stampy.examples.remote.exe.log4j.client.netty;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
 import asia.stampy.common.heartbeat.HeartbeatContainer;
@@ -46,8 +48,12 @@ public class NettyInitializer {
 
     NettyAutoTerminatingClientGateway gateway = new NettyAutoTerminatingClientGateway();
     gateway.setAutoShutdown(true);
-    gateway.setPort(1234);
-    gateway.setHost("localhost");
+    try {
+        gateway.setURI(new URI("stomp://localhost:1234/"));
+    }
+    catch (URISyntaxException e) {
+        System.err.println(e);
+    }
 
     ServerNettyChannelHandler handler = new ServerNettyChannelHandler();
     handler.setGateway(gateway);

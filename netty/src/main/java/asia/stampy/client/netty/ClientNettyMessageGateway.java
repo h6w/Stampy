@@ -40,7 +40,7 @@ import asia.stampy.common.netty.AbstractStampyNettyMessageGateway;
 public class ClientNettyMessageGateway extends AbstractStampyNettyMessageGateway {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   protected NioClientSocketChannelFactory factory;
-  private String host;
+  private URI uri;
 
   private Channel client;
   
@@ -76,13 +76,13 @@ public class ClientNettyMessageGateway extends AbstractStampyNettyMessageGateway
   public void connect() throws Exception {
     if (client == null) {
       ClientBootstrap bootstrap = init();
-      ChannelFuture cf = bootstrap.connect(new InetSocketAddress(getHost(), getPort()));
+      ChannelFuture cf = bootstrap.connect(new InetSocketAddress(this.uri.getHost(), this.uri.getPort()));
       cf.await();
       if (cf.isSuccess()) {
         client = cf.getChannel();
-        log.info("Connected to {}:{}", getHost(), getPort());
+        log.info("Connected to {}", this.uri);
       } else {
-        log.error("Could not connect to {}:{}", getHost(), getPort());
+        log.error("Could not connect to {}", this.uri);
       }
     } else if (client.isConnected()) {
       log.warn("Already connected");
@@ -111,8 +111,8 @@ public class ClientNettyMessageGateway extends AbstractStampyNettyMessageGateway
    * 
    * @return the host
    */
-  public String getHost() {
-    return host;
+  public URI getURI() {
+    return uri;
   }
 
   /**
@@ -121,8 +121,8 @@ public class ClientNettyMessageGateway extends AbstractStampyNettyMessageGateway
    * @param host
    *          the new host
    */
-  public void setHost(String host) {
-    this.host = host;
+  public void setURI(URI uri) {
+    this.uri = uri;
   }
 
 }
