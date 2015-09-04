@@ -32,7 +32,7 @@ import asia.stampy.client.message.send.SendMessage;
 import asia.stampy.client.message.stomp.StompMessage;
 import asia.stampy.client.message.subscribe.SubscribeMessage;
 import asia.stampy.client.message.unsubscribe.UnsubscribeMessage;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.message.AbstractMessage;
 import asia.stampy.common.parsing.StompMessageParser;
 import asia.stampy.common.parsing.UnparseableException;
@@ -84,7 +84,7 @@ public class MessageParserTest {
   public void testSendMessageParsingByteArray() throws Exception {
     SendMessage message = new SendMessage("over/there", "receiptId");
     message.setMimeType("application/jpeg", "UTF-8");
-    message.setBody(new HostPort("burt.alexander", 1234));
+    message.setBody(new URI("burt.alexander", 1234));
 
     testEquals(message);
   }

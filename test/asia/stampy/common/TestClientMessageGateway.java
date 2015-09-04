@@ -21,7 +21,7 @@ package asia.stampy.common;
 import java.util.Set;
 
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.message.interceptor.InterceptException;
 
 public class TestClientMessageGateway extends AbstractStampyMessageGateway {
@@ -36,13 +36,13 @@ public class TestClientMessageGateway extends AbstractStampyMessageGateway {
   }
 
   @Override
-  public void sendMessage(byte[] stompMessage, HostPort hostPort) throws InterceptException {
+  public void sendMessage(byte[] stompMessage, URI uri) throws InterceptException {
     
 
   }
 
   @Override
-  public void closeConnection(HostPort hostPort) {
+  public void closeConnection(URI uri) {
     
 
   }
@@ -60,13 +60,13 @@ public class TestClientMessageGateway extends AbstractStampyMessageGateway {
   }
 
   @Override
-  public boolean isConnected(HostPort hostPort) {
+  public boolean isConnected(URI uri) {
     
     return false;
   }
 
   @Override
-  public Set<HostPort> getConnectedHostPorts() {
+  public Set<URI> getConnectedHostPorts() {
     
     return null;
   }

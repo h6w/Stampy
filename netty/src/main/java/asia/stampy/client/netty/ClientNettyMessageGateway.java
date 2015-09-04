@@ -30,7 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asia.stampy.common.StampyLibrary;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.netty.AbstractStampyNettyMessageGateway;
 
 /**
@@ -63,8 +63,8 @@ public class ClientNettyMessageGateway extends AbstractStampyNettyMessageGateway
    * (asia.stampy.common.gateway.HostPort)
    */
   @Override
-  public void closeConnection(HostPort hostPort) {
-    getHandler().close(hostPort);
+  public void closeConnection(URI uri) {
+    getHandler().close(uri);
   }
 
   /*

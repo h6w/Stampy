@@ -32,7 +32,7 @@ import org.jboss.netty.handler.codec.frame.FrameDecoder;
 
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.message.interceptor.InterceptException;
 
 /**
@@ -82,8 +82,8 @@ public abstract class AbstractStampyNettyMessageGateway extends AbstractStampyMe
    * .lang.String, asia.stampy.common.gateway.HostPort)
    */
   @Override
-  public void sendMessage(byte[] stompMessage, HostPort hostPort) throws InterceptException {
-    getHandler().sendMessage(stompMessage, hostPort);
+  public void sendMessage(byte[] stompMessage, URI uri) throws InterceptException {
+    getHandler().sendMessage(stompMessage, uri);
   }
 
   /*
@@ -94,8 +94,8 @@ public abstract class AbstractStampyNettyMessageGateway extends AbstractStampyMe
    * .stampy.common.gateway.HostPort)
    */
   @Override
-  public boolean isConnected(HostPort hostPort) {
-    return getHandler().isConnected(hostPort);
+  public boolean isConnected(URI uri) {
+    return getHandler().isConnected(uri);
   }
 
   /*
@@ -106,7 +106,7 @@ public abstract class AbstractStampyNettyMessageGateway extends AbstractStampyMe
    * ()
    */
   @Override
-  public Set<HostPort> getConnectedHostPorts() {
+  public Set<URI> getConnectedHostPorts() {
     return getHandler().getConnectedHostPorts();
   }
 

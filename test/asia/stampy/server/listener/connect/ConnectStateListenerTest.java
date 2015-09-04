@@ -58,7 +58,7 @@ public class ConnectStateListenerTest extends AbstractListenerTest {
   public void before() throws Exception {
     connect.setGateway(serverGateway);
 
-    connect.messageReceived(getMessage(DISCONNECT), hostPort);
+    connect.messageReceived(getMessage(DISCONNECT), uri);
   }
 
   @Test
@@ -72,24 +72,24 @@ public class ConnectStateListenerTest extends AbstractListenerTest {
 
     for (StompMessageType type : connectedTypes) {
       try {
-        connect.messageReceived(getMessage(type), hostPort);
+        connect.messageReceived(getMessage(type), uri);
         fail("Should have thrown not connected exception");
       } catch (NotConnectedException e) {
         // expected
       }
     }
 
-    connect.messageReceived(getMessage(CONNECT), hostPort);
+    connect.messageReceived(getMessage(CONNECT), uri);
 
     try {
-      connect.messageReceived(getMessage(CONNECT), hostPort);
+      connect.messageReceived(getMessage(CONNECT), uri);
       fail("Should have thrown not connected exception");
     } catch (AlreadyConnectedException e) {
       // expected
     }
 
     try {
-      connect.messageReceived(getMessage(STOMP), hostPort);
+      connect.messageReceived(getMessage(STOMP), uri);
       fail("Should have thrown not connected exception");
     } catch (AlreadyConnectedException e) {
       // expected
@@ -98,15 +98,15 @@ public class ConnectStateListenerTest extends AbstractListenerTest {
 
   @Test
   public void testDisconnect() throws Exception {
-    connect.messageReceived(getMessage(CONNECT), hostPort);
+    connect.messageReceived(getMessage(CONNECT), uri);
     try {
-      connect.messageReceived(getMessage(CONNECT), hostPort);
+      connect.messageReceived(getMessage(CONNECT), uri);
       fail("Should have thrown not connected exception");
     } catch (AlreadyConnectedException e) {
       // expected
     }
-    connect.messageReceived(getMessage(DISCONNECT), hostPort);
-    connect.messageReceived(getMessage(CONNECT), hostPort);
+    connect.messageReceived(getMessage(DISCONNECT), uri);
+    connect.messageReceived(getMessage(CONNECT), uri);
   }
 
 }

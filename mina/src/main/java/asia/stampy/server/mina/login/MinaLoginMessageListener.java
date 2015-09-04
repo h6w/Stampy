@@ -28,7 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asia.stampy.common.StampyLibrary;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.MessageListenerHaltException;
 import asia.stampy.common.gateway.StampyMessageListener;
 import asia.stampy.common.mina.MinaServiceAdapter;
@@ -56,10 +56,10 @@ public class MinaLoginMessageListener extends AbstractLoginMessageListener<Serve
 
       @Override
       public void sessionDestroyed(IoSession session) throws Exception {
-        HostPort hostPort = new HostPort((InetSocketAddress) session.getRemoteAddress());
-        if (loggedInConnections.contains(hostPort)) {
-          log.debug("{} session terminated before DISCONNECT message received, cleaning up", hostPort);
-          loggedInConnections.remove(hostPort);
+        URI uri = new URI("stomp","",((InetSocketAddress) session.getRemoteAddress()).getHostName(),((InetSocketAddress) session.getRemoteAddress()).getPort(),"","","");
+        if (loggedInConnections.contains(uri)) {
+          log.debug("{} session terminated before DISCONNECT message received, cleaning up", uri);
+          loggedInConnections.remove(uri);
         }
       }
     });

@@ -21,7 +21,7 @@ package asia.stampy.examples.remote.exe.common;
 import asia.stampy.client.message.send.SendMessage;
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.StampyMessageListener;
 import asia.stampy.common.message.StampyMessage;
 import asia.stampy.common.message.StompMessageType;
@@ -69,10 +69,10 @@ public class RemoteExeMessageListener implements StampyMessageListener {
    * org.apache.mina.core.session.IoSession, asia.stampy.common.HostPort)
    */
   @Override
-  public void messageReceived(StampyMessage<?> message, HostPort hostPort) throws Exception {
+  public void messageReceived(StampyMessage<?> message, URI uri) throws Exception {
     RemoteExecutor executor = new RemoteExecutor();
     executor.setGateway(getGateway());
-    executor.processStompMessage((SendMessage) message, hostPort);
+    executor.processStompMessage((SendMessage) message, uri);
   }
 
   /**

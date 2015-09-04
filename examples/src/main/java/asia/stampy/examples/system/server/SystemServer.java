@@ -21,7 +21,7 @@ package asia.stampy.examples.system.server;
 import asia.stampy.client.message.subscribe.SubscribeMessage;
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.StampyMessageListener;
 import asia.stampy.common.message.StampyMessage;
 import asia.stampy.common.message.StompMessageType;
@@ -51,7 +51,7 @@ public class SystemServer {
     gateway.addMessageListener(new StampyMessageListener() {
 
       @Override
-      public void messageReceived(StampyMessage<?> message, HostPort hostPort) throws Exception {
+      public void messageReceived(StampyMessage<?> message, URI uri) throws Exception {
         switch (message.getMessageType()) {
         case ABORT:
           break;
@@ -74,7 +74,7 @@ public class SystemServer {
           break;
         case SUBSCRIBE:
           ackCount = 0;
-          sendMessages(((SubscribeMessage) message).getHeader().getId(), hostPort);
+          sendMessages(((SubscribeMessage) message).getHeader().getId(), uri);
           break;
         case UNSUBSCRIBE:
           System.out.println("Unsubscribe received, with " + ackCount + " acks");
@@ -100,12 +100,12 @@ public class SystemServer {
     System.out.println("Stampy system server started");
   }
 
-  private void sendMessages(String id, HostPort hostPort) throws InterceptException {
+  private void sendMessages(String id, URI uri) throws InterceptException {
     for (int i = 0; i < 100; i++) {
       String msgId = Integer.toString(i);
       MessageMessage message = new MessageMessage("destination", msgId, id);
       message.getHeader().setAck(msgId);
-      gateway.sendMessage(message, hostPort);
+      gateway.sendMessage(message, uri);
     }
   }
 

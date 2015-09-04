@@ -19,7 +19,7 @@
 package asia.stampy.examples.common;
 
 import asia.stampy.common.StampyLibrary;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.SecurityMessageListener;
 import asia.stampy.common.message.StampyMessage;
 import asia.stampy.common.message.StompMessageType;
@@ -38,7 +38,7 @@ public class IDontNeedSecurity implements SecurityMessageListener {
   }
 
   @Override
-  public void messageReceived(StampyMessage<?> message, HostPort hostPort) throws Exception {
+  public void messageReceived(StampyMessage<?> message, URI uri) throws Exception {
 
   }
 

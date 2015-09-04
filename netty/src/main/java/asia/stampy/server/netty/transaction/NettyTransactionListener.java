@@ -30,7 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asia.stampy.common.StampyLibrary;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.message.StompMessageType;
 import asia.stampy.server.listener.transaction.AbstractTransactionListener;
 import asia.stampy.server.netty.ServerNettyMessageGateway;
@@ -56,10 +56,10 @@ public class NettyTransactionListener extends AbstractTransactionListener<Server
   protected void ensureCleanup() {
     getGateway().addHandler(new SimpleChannelUpstreamHandler() {
       public void channelDisconnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
-        HostPort hostPort = new HostPort((InetSocketAddress) ctx.getChannel().getRemoteAddress());
-        if (activeTransactions.containsKey(hostPort)) {
-          log.debug("{} session terminated with outstanding transaction, cleaning up", hostPort);
-          activeTransactions.remove(hostPort);
+        URI uri = new URI("stomp","",((InetSocketAddress) ctx.getChannel().getRemoteAddress()).getHostName(),((InetSocketAddress) ctx.getChannel().getRemoteAddress()).getPort(),"","","");
+        if (activeTransactions.containsKey(uri)) {
+          log.debug("{} session terminated with outstanding transaction, cleaning up", uri);
+          activeTransactions.remove(uri);
         }
       }
     });

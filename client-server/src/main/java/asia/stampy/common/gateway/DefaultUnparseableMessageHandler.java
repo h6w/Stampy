@@ -20,6 +20,8 @@ package asia.stampy.common.gateway;
 
 import java.lang.invoke.MethodHandles;
 
+import java.net.URI;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,8 +43,8 @@ public class DefaultUnparseableMessageHandler implements UnparseableMessageHandl
    * (java .lang.String, asia.stampy.common.HostPort)
    */
   @Override
-  public void unparseableMessage(String message, HostPort hostPort) throws Exception {
-    log.warn("Unparseable message {} received from {}", message, hostPort);
+  public void unparseableMessage(String message, URI uri) throws Exception {
+    log.warn("Unparseable message {} received from {}", message, uri);
   }
 
 }

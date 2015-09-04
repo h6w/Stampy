@@ -29,7 +29,7 @@ import asia.stampy.client.message.connect.ConnectHeader;
 import asia.stampy.client.message.connect.ConnectMessage;
 import asia.stampy.client.message.stomp.StompMessage;
 import asia.stampy.common.StampyLibrary;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.StampyMessageListener;
 import asia.stampy.common.message.StampyMessage;
 import asia.stampy.common.message.StompMessageType;
@@ -77,13 +77,13 @@ public class VersionListener implements StampyMessageListener {
    * asia.stampy.common.HostPort)
    */
   @Override
-  public void messageReceived(StampyMessage<?> message, HostPort hostPort) throws Exception {
+  public void messageReceived(StampyMessage<?> message, URI uri) throws Exception {
     switch (message.getMessageType()) {
     case CONNECT:
-      checkVersion(hostPort, ((ConnectMessage) message).getHeader());
+      checkVersion(uri, ((ConnectMessage) message).getHeader());
       break;
     case STOMP:
-      checkVersion(hostPort, ((StompMessage) message).getHeader());
+      checkVersion(uri, ((StompMessage) message).getHeader());
       break;
     default:
       break;
@@ -91,14 +91,14 @@ public class VersionListener implements StampyMessageListener {
     }
   }
 
-  private void checkVersion(HostPort hostPort, ConnectHeader header) throws StompVersionException {
+  private void checkVersion(URI uri, ConnectHeader header) throws StompVersionException {
     String acceptVersion = header.getAcceptVersion();
 
     String[] parts = acceptVersion.split(",");
 
     for (String part : parts) {
       if (part.trim().equals(VERSION)) {
-        log.info("Accept version is valid for {}", hostPort);
+        log.info("Accept version is valid for {}", uri);
         return;
       }
     }

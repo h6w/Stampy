@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.StampyMessageListener;
 import asia.stampy.common.heartbeat.HeartbeatContainer;
 import asia.stampy.common.heartbeat.StampyHeartbeatContainer;
@@ -89,8 +89,8 @@ public abstract class AbstractConnectedMessageListener<CLNT extends AbstractStam
    * stampy.common.message.StampyMessage, asia.stampy.common.HostPort)
    */
   @Override
-  public void messageReceived(StampyMessage<?> message, HostPort hostPort) throws Exception {
-    log.debug("Received connect message {} from {}", message, hostPort);
+  public void messageReceived(StampyMessage<?> message, URI uri) throws Exception {
+    log.debug("Received connect message {} from {}", message, uri);
     ConnectedMessage cm = (ConnectedMessage) message;
 
     int requested = cm.getHeader().getIncomingHeartbeat();
@@ -99,9 +99,9 @@ public abstract class AbstractConnectedMessageListener<CLNT extends AbstractStam
 
     int heartbeat = Math.max(requested, gateway.getHeartbeat());
 
-    log.info("Starting heartbeats for {} at {} ms intervals", hostPort, heartbeat);
+    log.info("Starting heartbeats for {} at {} ms intervals", uri, heartbeat);
 
-    getHeartbeatContainer().start(hostPort, getGateway(), heartbeat);
+    getHeartbeatContainer().start(uri, getGateway(), heartbeat);
   }
 
   /**

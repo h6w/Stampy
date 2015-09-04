@@ -10,3 +10,4 @@ stampy.*
 /nbactions.xml
 /client-server/target/
 /target/
+*~

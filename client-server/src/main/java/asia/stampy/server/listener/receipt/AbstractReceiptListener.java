@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 import asia.stampy.client.message.ClientMessageHeader;
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.StampyMessageListener;
 import asia.stampy.common.message.StampyMessage;
 import asia.stampy.common.message.StompMessageType;
@@ -85,11 +85,11 @@ public abstract class AbstractReceiptListener<SVR extends AbstractStampyMessageG
    * stampy.common.message.StampyMessage, asia.stampy.common.HostPort)
    */
   @Override
-  public void messageReceived(StampyMessage<?> message, HostPort hostPort) throws Exception {
+  public void messageReceived(StampyMessage<?> message, URI uri) throws Exception {
     ReceiptMessage msg = new ReceiptMessage(getReceipt(message));
 
-    getGateway().sendMessage(msg, hostPort);
-    log.debug("Sent RECEIPT message to {}", hostPort);
+    getGateway().sendMessage(msg, uri);
+    log.debug("Sent RECEIPT message to {}", uri);
   }
 
   private String getReceipt(StampyMessage<?> message) {

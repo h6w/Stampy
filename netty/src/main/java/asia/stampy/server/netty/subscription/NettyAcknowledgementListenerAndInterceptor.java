@@ -30,7 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asia.stampy.common.StampyLibrary;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.message.StompMessageType;
 import asia.stampy.server.listener.subscription.AbstractAcknowledgementListenerAndInterceptor;
 import asia.stampy.server.listener.subscription.StampyAcknowledgementHandler;
@@ -59,10 +59,10 @@ public class NettyAcknowledgementListenerAndInterceptor extends
   protected void ensureCleanup() {
     getGateway().addHandler(new SimpleChannelUpstreamHandler() {
       public void channelDisconnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
-        HostPort hostPort = new HostPort((InetSocketAddress) ctx.getChannel().getRemoteAddress());
-        if (messages.containsKey(hostPort)) {
-          log.debug("{} session terminated, cleaning up message interceptor", hostPort);
-          messages.remove(hostPort);
+        URI uri = new URI("stomp","",((InetSocketAddress) ctx.getChannel().getRemoteAddress()).getHostName(),((InetSocketAddress) ctx.getChannel().getRemoteAddress()).getPort(),"","","");
+        if (messages.containsKey(uri)) {
+          log.debug("{} session terminated, cleaning up message interceptor", uri);
+          messages.remove(uri);
         }
       }
     });

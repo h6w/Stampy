@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import asia.stampy.common.StampyLibrary;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.StampyMessageListener;
 import asia.stampy.common.message.StampyMessage;
 import asia.stampy.common.message.StompMessageType;
@@ -43,7 +43,7 @@ import asia.stampy.common.message.StompMessageType;
 @StampyLibrary(libraryName = "stampy-examples")
 public class TestServerMessageListener implements StampyMessageListener {
 
-  private Map<HostPort, AtomicInteger> acks = new ConcurrentHashMap<HostPort, AtomicInteger>();
+  private Map<URI, AtomicInteger> acks = new ConcurrentHashMap<URI, AtomicInteger>();
 
   private boolean connect = false;
   private boolean disconnect = false;
@@ -60,10 +60,10 @@ public class TestServerMessageListener implements StampyMessageListener {
    * org.apache.mina.core.session.IoSession, asia.stampy.common.HostPort)
    */
   @Override
-  public void messageReceived(StampyMessage<?> message, HostPort hostPort) throws Exception {
+  public void messageReceived(StampyMessage<?> message, URI uri) throws Exception {
     switch (message.getMessageType()) {
     case ACK:
-      getAckCounter(hostPort).getAndIncrement();
+      getAckCounter(uri).getAndIncrement();
       break;
     case CONNECT:
       connect = true;
@@ -72,8 +72,8 @@ public class TestServerMessageListener implements StampyMessageListener {
     case DISCONNECT:
       disconnect = true;
       end = System.nanoTime();
-      stats(getAckCounter(hostPort));
-      acks.remove(hostPort);
+      stats(getAckCounter(uri));
+      acks.remove(uri);
       break;
     default:
       System.out.println("Unexpected message " + message.getMessageType());
@@ -82,11 +82,11 @@ public class TestServerMessageListener implements StampyMessageListener {
     }
   }
   
-  private AtomicInteger getAckCounter(HostPort hostPort) {
-    AtomicInteger ai = acks.get(hostPort);
+  private AtomicInteger getAckCounter(URI uri) {
+    AtomicInteger ai = acks.get(uri);
     if(ai == null) {
       ai = new AtomicInteger();
-      acks.put(hostPort, ai);
+      acks.put(uri, ai);
     }
     
     return ai;

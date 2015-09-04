@@ -32,7 +32,7 @@ import asia.stampy.client.message.send.SendMessage;
 import asia.stampy.client.message.stomp.StompMessage;
 import asia.stampy.client.message.subscribe.SubscribeMessage;
 import asia.stampy.client.message.unsubscribe.UnsubscribeMessage;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.StampyMessageListener;
 import asia.stampy.common.heartbeat.StampyHeartbeatContainer;
 import asia.stampy.common.message.StampyMessage;
@@ -44,7 +44,7 @@ import asia.stampy.server.message.message.MessageMessage;
 import asia.stampy.server.message.receipt.ReceiptMessage;
 
 public abstract class AbstractListenerTest {
-  protected HostPort hostPort = new HostPort("burt.alexander", 9999);
+  protected URI uri = new URI("burt.alexander", 9999);
 
   @Mock
   protected TestClientMessageGateway clientGateway;

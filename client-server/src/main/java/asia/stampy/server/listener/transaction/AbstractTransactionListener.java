@@ -32,7 +32,7 @@ import asia.stampy.client.message.begin.BeginMessage;
 import asia.stampy.client.message.commit.CommitMessage;
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.StampyMessageListener;
 import asia.stampy.common.message.StampyMessage;
 import asia.stampy.common.message.StompMessageType;
@@ -48,7 +48,7 @@ public abstract class AbstractTransactionListener<SVR extends AbstractStampyMess
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /** The active transactions. */
-  protected Map<HostPort, Queue<String>> activeTransactions = new ConcurrentHashMap<HostPort, Queue<String>>();
+  protected Map<URI, Queue<String>> activeTransactions = new ConcurrentHashMap<URI, Queue<String>>();
   private SVR gateway;
 
   private static StompMessageType[] TYPES = { StompMessageType.ABORT, StompMessageType.BEGIN, StompMessageType.COMMIT,
@@ -83,19 +83,19 @@ public abstract class AbstractTransactionListener<SVR extends AbstractStampyMess
    * stampy.common.message.StampyMessage, asia.stampy.common.HostPort)
    */
   @Override
-  public void messageReceived(StampyMessage<?> message, HostPort hostPort) throws Exception {
+  public void messageReceived(StampyMessage<?> message, URI uri) throws Exception {
     switch (message.getMessageType()) {
     case ABORT:
-      abort(hostPort, ((AbortMessage) message).getHeader().getTransaction());
+      abort(uri, ((AbortMessage) message).getHeader().getTransaction());
       break;
     case BEGIN:
-      begin(hostPort, ((BeginMessage) message).getHeader().getTransaction());
+      begin(uri, ((BeginMessage) message).getHeader().getTransaction());
       break;
     case COMMIT:
-      commit(hostPort, ((CommitMessage) message).getHeader().getTransaction());
+      commit(uri, ((CommitMessage) message).getHeader().getTransaction());
       break;
     case DISCONNECT:
-      logOutstandingTransactions(hostPort);
+      logOutstandingTransactions(uri);
       break;
     default:
       break;
@@ -104,8 +104,8 @@ public abstract class AbstractTransactionListener<SVR extends AbstractStampyMess
 
   }
 
-  private void logOutstandingTransactions(HostPort hostPort) {
-    Queue<String> q = getTransactions(hostPort);
+  private void logOutstandingTransactions(URI uri) {
+    Queue<String> q = getTransactions(uri);
     if (q.isEmpty()) return;
 
     for (String transaction : q) {
@@ -113,24 +113,24 @@ public abstract class AbstractTransactionListener<SVR extends AbstractStampyMess
     }
   }
 
-  private void commit(HostPort hostPort, String transaction) throws TransactionNotStartedException {
-    removeActiveTransaction(hostPort, transaction, "committed");
+  private void commit(URI uri, String transaction) throws TransactionNotStartedException {
+    removeActiveTransaction(uri, transaction, "committed");
   }
 
-  private void abort(HostPort hostPort, String transaction) throws TransactionNotStartedException {
-    removeActiveTransaction(hostPort, transaction, "aborted");
+  private void abort(URI uri, String transaction) throws TransactionNotStartedException {
+    removeActiveTransaction(uri, transaction, "aborted");
   }
 
-  private void begin(HostPort hostPort, String transaction) throws TransactionAlreadyStartedException {
-    if (isNoTransaction(hostPort, transaction)) {
-      log.info("Starting transaction {} for {}", transaction, hostPort);
-      Queue<String> q = getTransactions(hostPort);
+  private void begin(URI uri, String transaction) throws TransactionAlreadyStartedException {
+    if (isNoTransaction(uri, transaction)) {
+      log.info("Starting transaction {} for {}", transaction, uri);
+      Queue<String> q = getTransactions(uri);
       q.add(transaction);
     }
   }
 
-  private boolean isNoTransaction(HostPort hostPort, String transaction) throws TransactionAlreadyStartedException {
-    Queue<String> q = getTransactions(hostPort);
+  private boolean isNoTransaction(URI uri, String transaction) throws TransactionAlreadyStartedException {
+    Queue<String> q = getTransactions(uri);
     if (q.contains(transaction)) {
       String error = "Transaction already started";
       throw new TransactionAlreadyStartedException(error);
@@ -139,28 +139,28 @@ public abstract class AbstractTransactionListener<SVR extends AbstractStampyMess
     return true;
   }
 
-  private void removeActiveTransaction(HostPort hostPort, String transaction, String function)
+  private void removeActiveTransaction(URI uri, String transaction, String function)
       throws TransactionNotStartedException {
-    if (isTransactionStarted(hostPort, transaction)) {
-      Object[] parms = { transaction, hostPort, function };
+    if (isTransactionStarted(uri, transaction)) {
+      Object[] parms = { transaction, uri, function };
       log.info("Transaction id {} for {} {}", parms);
-      Queue<String> q = getTransactions(hostPort);
+      Queue<String> q = getTransactions(uri);
       q.remove(transaction);
     }
   }
 
-  private Queue<String> getTransactions(HostPort hostPort) {
-    Queue<String> transactions = activeTransactions.get(hostPort);
+  private Queue<String> getTransactions(URI uri) {
+    Queue<String> transactions = activeTransactions.get(uri);
     if (transactions == null) {
       transactions = new ConcurrentLinkedQueue<String>();
-      activeTransactions.put(hostPort, transactions);
+      activeTransactions.put(uri, transactions);
     }
 
     return transactions;
   }
 
-  private boolean isTransactionStarted(HostPort hostPort, String transaction) throws TransactionNotStartedException {
-    Queue<String> q = getTransactions(hostPort);
+  private boolean isTransactionStarted(URI uri, String transaction) throws TransactionNotStartedException {
+    Queue<String> q = getTransactions(uri);
     if (!q.contains(transaction)) {
       String error = "Transaction not started";
       log.error(error);

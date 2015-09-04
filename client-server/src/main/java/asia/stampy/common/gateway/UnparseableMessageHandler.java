@@ -18,6 +18,8 @@
  */
 package asia.stampy.common.gateway;
 
+import java.net.URI;
+
 import asia.stampy.common.StampyLibrary;
 
 /**
@@ -31,11 +33,11 @@ public interface UnparseableMessageHandler {
    * 
    * @param message
    *          the message
-   * @param hostPort
+   * @param uri
    *          the host port
    * @throws Exception
    *           the exception
    */
-  void unparseableMessage(String message, HostPort hostPort) throws Exception;
+  void unparseableMessage(String message, URI uri) throws Exception;
 
 }

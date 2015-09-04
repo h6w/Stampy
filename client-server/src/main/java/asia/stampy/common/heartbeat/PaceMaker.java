@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 
 /**
  * Sends heartbeats to a remote connection as specified by the STOMP
@@ -43,7 +43,7 @@ class PaceMaker {
 
   private AbstractStampyMessageGateway gateway;
 
-  private HostPort hostPort;
+  private URI uri;
 
   private int heartbeatCount;
 
@@ -97,11 +97,11 @@ class PaceMaker {
   private void executeHeartbeat() {
     if (heartbeatCount >= 2) {
       log.warn("No response after 2 heartbeats, closing connection");
-      gateway.closeConnection(getHostPort());
+      gateway.closeConnection(getURI());
     } else {
       try {
-        if (gateway.isConnected(getHostPort())) {
-          gateway.sendMessage(StampyHeartbeatContainer.HB1, getHostPort());
+        if (gateway.isConnected(getURI())) {
+          gateway.sendMessage(StampyHeartbeatContainer.HB1, getURI());
           log.debug("Sent heartbeat");
           start();
           heartbeatCount++;
@@ -145,18 +145,18 @@ class PaceMaker {
    * 
    * @return the host port
    */
-  public HostPort getHostPort() {
-    return hostPort;
+  public URI getURI() {
+    return uri;
   }
 
   /**
    * Sets the host port. Must be called upon instantiation.
    * 
-   * @param hostPort
+   * @param uri
    *          the new host port
    */
-  public void setHostPort(HostPort hostPort) {
-    this.hostPort = hostPort;
+  public void setURI(URI uri) {
+    this.uri = uri;
   }
 
   /**

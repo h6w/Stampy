@@ -19,6 +19,7 @@
 package asia.stampy.common.gateway;
 
 import java.lang.invoke.MethodHandles;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -157,14 +158,14 @@ public abstract class AbstractStampyMessageGateway {
    * 
    * @param message
    *          the message
-   * @param hostPort
+   * @param uri
    *          the host port
    * @throws InterceptException
    *           the intercept exception
    */
-  public void sendMessage(StampyMessage<?> message, HostPort hostPort) throws InterceptException {
-    interceptOutgoingMessage(message, hostPort);
-    sendMessage(message.toStompMessage(true), hostPort);
+  public void sendMessage(StampyMessage<?> message, URI uri) throws InterceptException {
+    interceptOutgoingMessage(message, uri);
+    sendMessage(message.toStompMessage(true), uri);
   }
 
   /**
@@ -193,17 +194,17 @@ public abstract class AbstractStampyMessageGateway {
    * 
    * @param message
    *          the message
-   * @param hostPort
+   * @param uri
    *          the host port
    * @throws InterceptException
    *           the intercept exception
    */
-  protected final void interceptOutgoingMessage(StampyMessage<?> message, HostPort hostPort) throws InterceptException {
+  protected final void interceptOutgoingMessage(StampyMessage<?> message, URI uri) throws InterceptException {
     stampyInterceptorLock.lock();
     try {
       for (StampyOutgoingMessageInterceptor interceptor : interceptors) {
         if (isForType(interceptor.getMessageTypes(), message.getMessageType()) && interceptor.isForMessage(message)) {
-          interceptor.interceptMessage(message, hostPort);
+          interceptor.interceptMessage(message, uri);
         }
       }
     } finally {
@@ -254,16 +255,16 @@ public abstract class AbstractStampyMessageGateway {
    * 
    * @param sm
    *          the sm
-   * @param hostPort
+   * @param uri
    *          the host port
    * @throws Exception
    *           the exception
    */
-  public void notifyMessageListeners(StampyMessage<?> sm, HostPort hostPort) throws Exception {
+  public void notifyMessageListeners(StampyMessage<?> sm, URI uri) throws Exception {
     for (StampyMessageListener listener : listeners) {
       if (isForType(listener.getMessageTypes(), sm.getMessageType()) && listener.isForMessage(sm)) {
         log.trace("Evaluating message {} with listener {}", sm, listener);
-        listener.messageReceived(sm, hostPort);
+        listener.messageReceived(sm, uri);
       }
     }
   }
@@ -336,20 +337,20 @@ public abstract class AbstractStampyMessageGateway {
    * 
    * @param stompMessage
    *          the stomp message
-   * @param hostPort
+   * @param uri
    *          the host port
    * @throws InterceptException
    *           the intercept exception
    */
-  public abstract void sendMessage(byte[] stompMessage, HostPort hostPort) throws InterceptException;
+  public abstract void sendMessage(byte[] stompMessage, URI uri) throws InterceptException;
 
   /**
    * Closes the connection to the STOMP server or client.
    * 
-   * @param hostPort
+   * @param uri
    *          the host port
    */
-  public abstract void closeConnection(HostPort hostPort);
+  public abstract void closeConnection(URI uri);
 
   /**
    * Connects to a STOMP server or client as specified by configuration.
@@ -370,18 +371,18 @@ public abstract class AbstractStampyMessageGateway {
   /**
    * Returns true if a connection exists and is active.
    * 
-   * @param hostPort
+   * @param uri
    *          the host port
    * @return true, if is connected
    */
-  public abstract boolean isConnected(HostPort hostPort);
+  public abstract boolean isConnected(URI uri);
 
   /**
    * Gets the connected host ports.
    * 
    * @return the connected host ports
    */
-  public abstract Set<HostPort> getConnectedHostPorts();
+  public abstract Set<URI> getConnectedHostPorts();
 
   /**
    * If true the gateway will shut down when all sessions are terminated.

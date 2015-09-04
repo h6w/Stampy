@@ -20,7 +20,7 @@ package asia.stampy.common.message.interceptor;
 
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.message.StampyMessage;
 import asia.stampy.common.message.StompMessageType;
 
@@ -68,13 +68,13 @@ public interface StampyOutgoingMessageInterceptor {
    * 
    * @param message
    *          the message
-   * @param hostPort
+   * @param uri
    *          the host port
    * @throws InterceptException
    *           if the outgoing message is to be aborted
    *           {@link AbstractStampyMessageGateway}
    * @see AbstractStampyMessageGateway
    */
-  void interceptMessage(StampyMessage<?> message, HostPort hostPort) throws InterceptException;
+  void interceptMessage(StampyMessage<?> message, URI uri) throws InterceptException;
 
 }

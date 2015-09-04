@@ -31,7 +31,7 @@ import asia.stampy.client.message.connect.ConnectMessage;
 import asia.stampy.client.message.stomp.StompMessage;
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.MessageListenerHaltException;
 import asia.stampy.common.gateway.StampyMessageListener;
 import asia.stampy.common.message.StampyMessage;
@@ -55,7 +55,7 @@ public abstract class AbstractLoginMessageListener<SVR extends AbstractStampyMes
   private static StompMessageType[] TYPES = StompMessageType.values();
 
   /** The logged in connections. */
-  protected Queue<HostPort> loggedInConnections = new ConcurrentLinkedQueue<HostPort>();
+  protected Queue<URI> loggedInConnections = new ConcurrentLinkedQueue<URI>();
 
   private StampyLoginHandler loginHandler;
   private SVR gateway;
@@ -89,7 +89,7 @@ public abstract class AbstractLoginMessageListener<SVR extends AbstractStampyMes
    * stampy.common.message.StampyMessage, asia.stampy.common.HostPort)
    */
   @Override
-  public void messageReceived(StampyMessage<?> message, HostPort hostPort) throws Exception {
+  public void messageReceived(StampyMessage<?> message, URI uri) throws Exception {
     switch (message.getMessageType()) {
     case ABORT:
     case ACK:
@@ -99,16 +99,16 @@ public abstract class AbstractLoginMessageListener<SVR extends AbstractStampyMes
     case SEND:
     case SUBSCRIBE:
     case UNSUBSCRIBE:
-      loggedInCheck(message, hostPort);
+      loggedInCheck(message, uri);
       break;
     case CONNECT:
-      logIn(hostPort, ((ConnectMessage) message).getHeader());
+      logIn(uri, ((ConnectMessage) message).getHeader());
       break;
     case STOMP:
-      logIn(hostPort, ((StompMessage) message).getHeader());
+      logIn(uri, ((StompMessage) message).getHeader());
       break;
     case DISCONNECT:
-      loggedInConnections.remove(hostPort);
+      loggedInConnections.remove(uri);
       break;
     default:
       String error = "Unexpected message type " + message.getMessageType();
@@ -118,36 +118,36 @@ public abstract class AbstractLoginMessageListener<SVR extends AbstractStampyMes
     }
   }
 
-  private void loggedInCheck(StampyMessage<?> message, HostPort hostPort) throws NotLoggedInException {
-    if (loggedInConnections.contains(hostPort)) return;
+  private void loggedInCheck(StampyMessage<?> message, URI uri) throws NotLoggedInException {
+    if (loggedInConnections.contains(uri)) return;
 
-    log.error("{} attempted to send a {} message without logging in", hostPort, message.getMessageType());
+    log.error("{} attempted to send a {} message without logging in", uri, message.getMessageType());
     throw new NotLoggedInException("Not logged in");
   }
 
-  private void logIn(HostPort hostPort, ConnectHeader header) throws AlreadyLoggedInException, NotLoggedInException,
+  private void logIn(URI uri, ConnectHeader header) throws AlreadyLoggedInException, NotLoggedInException,
       MessageListenerHaltException {
-    if (loggedInConnections.contains(hostPort)) throw new AlreadyLoggedInException(hostPort + " is already logged in");
+    if (loggedInConnections.contains(uri)) throw new AlreadyLoggedInException(uri + " is already logged in");
 
     if (!isForHeader(header)) throw new NotLoggedInException("login and passcode not specified, cannot log in");
 
     try {
       getLoginHandler().login(header.getLogin(), header.getPasscode());
-      loggedInConnections.add(hostPort);
+      loggedInConnections.add(uri);
     } catch (TerminateSessionException e) {
       log.error("Login handler has terminated the session", e);
-      sendErrorMessage(e.getMessage(), hostPort);
-      gateway.closeConnection(hostPort);
+      sendErrorMessage(e.getMessage(), uri);
+      gateway.closeConnection(uri);
       throw new MessageListenerHaltException();
     }
   }
 
-  private void sendErrorMessage(String message, HostPort hostPort) {
+  private void sendErrorMessage(String message, URI uri) {
     ErrorMessage error = new ErrorMessage("n/a");
     error.getHeader().setMessageHeader(message);
 
     try {
-      getGateway().sendMessage(error, hostPort);
+      getGateway().sendMessage(error, uri);
     } catch (InterceptException e) {
       log.error("Sending of login error message failed", e);
     }

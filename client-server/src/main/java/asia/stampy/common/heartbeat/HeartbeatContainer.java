@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 
 /**
  * Encapsulates all the currently active {@link PaceMaker}s. This class is a
@@ -40,29 +40,29 @@ import asia.stampy.common.gateway.HostPort;
 public class HeartbeatContainer implements StampyHeartbeatContainer {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private Map<HostPort, PaceMaker> paceMakers = new ConcurrentHashMap<HostPort, PaceMaker>();
+  private Map<URI, PaceMaker> paceMakers = new ConcurrentHashMap<URI, PaceMaker>();
 
   /* (non-Javadoc)
    * @see asia.stampy.common.heartbeat.StampyHeartbeatContainer#start(asia.stampy.common.gateway.HostPort, asia.stampy.common.gateway.AbstractStampyMessageGateway, int)
    */
   @Override
-  public void start(HostPort hostPort, AbstractStampyMessageGateway gateway, int timeMillis) {
+  public void start(URI uri, AbstractStampyMessageGateway gateway, int timeMillis) {
     PaceMaker paceMaker = new PaceMaker(timeMillis);
-    paceMaker.setHostPort(hostPort);
+    paceMaker.setURI(uri);
     paceMaker.setGateway(gateway);
     paceMaker.start();
 
-    add(hostPort, paceMaker);
+    add(uri, paceMaker);
   }
 
   /* (non-Javadoc)
    * @see asia.stampy.common.heartbeat.StampyHeartbeatContainer#stop(asia.stampy.common.gateway.HostPort)
    */
   @Override
-  public void stop(HostPort hostPort) {
-    PaceMaker paceMaker = paceMakers.get(hostPort);
+  public void stop(URI uri) {
+    PaceMaker paceMaker = paceMakers.get(uri);
     if (paceMaker != null) {
-      log.info("Stopping PaceMaker for {}", hostPort);
+      log.info("Stopping PaceMaker for {}", uri);
       paceMaker.stop();
     }
   }
@@ -70,35 +70,35 @@ public class HeartbeatContainer implements StampyHeartbeatContainer {
   /**
    * Adds a new {@link PaceMaker} for the specified {@link HostPort}.
    * 
-   * @param hostPort
+   * @param uri
    *          the host port
    * @param paceMaker
    *          the pace maker
    */
-  protected void add(HostPort hostPort, PaceMaker paceMaker) {
-    stop(hostPort);
-    log.info("Adding PaceMaker for {}", hostPort);
-    paceMakers.put(hostPort, paceMaker);
+  protected void add(URI uri, PaceMaker paceMaker) {
+    stop(uri);
+    log.info("Adding PaceMaker for {}", uri);
+    paceMakers.put(uri, paceMaker);
   }
 
   /* (non-Javadoc)
    * @see asia.stampy.common.heartbeat.StampyHeartbeatContainer#remove(asia.stampy.common.gateway.HostPort)
    */
   @Override
-  public void remove(HostPort hostPort) {
-    stop(hostPort);
-    log.info("Removing PaceMaker for {}", hostPort);
-    paceMakers.remove(hostPort);
+  public void remove(URI uri) {
+    stop(uri);
+    log.info("Removing PaceMaker for {}", uri);
+    paceMakers.remove(uri);
   }
 
   /* (non-Javadoc)
    * @see asia.stampy.common.heartbeat.StampyHeartbeatContainer#reset(asia.stampy.common.gateway.HostPort)
    */
   @Override
-  public void reset(HostPort hostPort) {
-    if (hostPort == null) return;
-    log.trace("Resetting PaceMaker for {}", hostPort);
-    PaceMaker paceMaker = paceMakers.get(hostPort);
+  public void reset(URI uri) {
+    if (uri == null) return;
+    log.trace("Resetting PaceMaker for {}", uri);
+    PaceMaker paceMaker = paceMakers.get(uri);
     if (paceMaker != null) paceMaker.reset();
   }
 }

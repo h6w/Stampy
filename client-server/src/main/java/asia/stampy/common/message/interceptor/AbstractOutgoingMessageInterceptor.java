@@ -20,7 +20,7 @@ package asia.stampy.common.message.interceptor;
 
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.message.StampyMessage;
 
 /**
@@ -41,8 +41,8 @@ public abstract class AbstractOutgoingMessageInterceptor<SVR extends AbstractSta
    */
   @Override
   public void interceptMessage(StampyMessage<?> message) throws InterceptException {
-    for (HostPort hostPort : getGateway().getConnectedHostPorts()) {
-      interceptMessage(message, hostPort);
+    for (URI uri : getGateway().getConnectedHostPorts()) {
+      interceptMessage(message, uri);
     }
   }
 

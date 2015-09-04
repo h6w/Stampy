@@ -21,7 +21,7 @@ package asia.stampy.client.listener.validate;
 import javax.annotation.Resource;
 
 import asia.stampy.common.StampyLibrary;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.StampyMessageListener;
 import asia.stampy.common.message.StampyMessage;
 import asia.stampy.common.message.StompMessageType;
@@ -56,7 +56,7 @@ public class ClientMessageValidationListener implements StampyMessageListener {
    * @see asia.stampy.common.gateway.StampyMessageListener#messageReceived(asia.stampy.common.message.StampyMessage, asia.stampy.common.gateway.HostPort)
    */
   @Override
-  public void messageReceived(StampyMessage<?> message, HostPort hostPort) throws Exception {
+  public void messageReceived(StampyMessage<?> message, URI uri) throws Exception {
     switch (message.getMessageType()) {
 
     case CONNECTED:

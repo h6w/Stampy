@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import asia.stampy.client.message.disconnect.DisconnectMessage;
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.MessageListenerHaltException;
 import asia.stampy.common.gateway.StampyMessageListener;
 import asia.stampy.common.message.StampyMessage;
@@ -107,7 +107,7 @@ public abstract class AbstractDisconnectListenerAndInterceptor<CLNT extends Abst
    * asia.stampy.common.HostPort)
    */
   @Override
-  public void interceptMessage(StampyMessage<?> message, HostPort hostPort) throws InterceptException {
+  public void interceptMessage(StampyMessage<?> message, URI uri) throws InterceptException {
     switch (message.getMessageType()) {
     case DISCONNECT:
       setReceiptId((DisconnectMessage) message);
@@ -125,13 +125,13 @@ public abstract class AbstractDisconnectListenerAndInterceptor<CLNT extends Abst
    * stampy.common.message.StampyMessage, asia.stampy.common.HostPort)
    */
   @Override
-  public void messageReceived(StampyMessage<?> message, HostPort hostPort) throws Exception {
+  public void messageReceived(StampyMessage<?> message, URI uri) throws Exception {
     switch (message.getMessageType()) {
     case RECEIPT:
       setReceiptId((String) null);
       if (isCloseOnDisconnectMessage()) {
         log.info("Receipt for disconnect message received, disconnecting");
-        getGateway().closeConnection(hostPort);
+        getGateway().closeConnection(uri);
         throw new MessageListenerHaltException();
       }
       break;

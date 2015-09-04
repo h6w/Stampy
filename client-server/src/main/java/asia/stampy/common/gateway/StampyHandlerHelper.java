@@ -2,6 +2,8 @@ package asia.stampy.common.gateway;
 
 import java.lang.invoke.MethodHandles;
 
+import java.net.URI;
+
 import javax.annotation.Resource;
 
 import org.apache.commons.lang.StringUtils;
@@ -37,7 +39,7 @@ public class StampyHandlerHelper {
   /**
    * Handle unexpected error.
    * 
-   * @param hostPort
+   * @param uri
    *          the host port
    * @param msg
    *          the msg
@@ -46,38 +48,38 @@ public class StampyHandlerHelper {
    * @param e
    *          the e
    */
-  public void handleUnexpectedError(HostPort hostPort, String msg, StampyMessage<?> sm, Exception e) {
+  public void handleUnexpectedError(URI uri, String msg, StampyMessage<?> sm, Exception e) {
     try {
       if (sm == null) {
-        errorHandle(e, hostPort);
+        errorHandle(e, uri);
       } else {
-        errorHandle(sm, e, hostPort);
+        errorHandle(sm, e, uri);
       }
     } catch (Exception e1) {
-      log.error("Unexpected exception sending error message for {}", hostPort, e1);
+      log.error("Unexpected exception sending error message for {}", uri, e1);
     }
   }
 
   /**
    * Handle unparseable message.
    * 
-   * @param hostPort
+   * @param uri
    *          the host port
    * @param msg
    *          the msg
    * @param e
    *          the e
    */
-  public void handleUnparseableMessage(HostPort hostPort, String msg, UnparseableException e) {
+  public void handleUnparseableMessage(URI uri, String msg, UnparseableException e) {
     log.debug("Unparseable message, delegating to unparseable message handler");
     try {
-      getUnparseableMessageHandler().unparseableMessage(msg, hostPort);
+      getUnparseableMessageHandler().unparseableMessage(msg, uri);
     } catch (Exception e1) {
       try {
-        errorHandle(e1, hostPort);
+        errorHandle(e1, uri);
       } catch (Exception e2) {
-        log.error("Could not parse message {} for {}", msg, hostPort);
-        log.error("Unexpected exception sending error message for {}", hostPort, e2);
+        log.error("Could not parse message {} for {}", msg, uri);
+        log.error("Unexpected exception sending error message for {}", uri, e2);
       }
     }
   }
@@ -89,17 +91,17 @@ public class StampyHandlerHelper {
    *          the message
    * @param e
    *          the e
-   * @param hostPort
+   * @param uri
    *          the host port
    * @throws Exception
    *           the exception
    */
-  protected void errorHandle(StampyMessage<?> message, Exception e, HostPort hostPort) throws Exception {
-    log.error("Handling error, sending error message to {}", hostPort, e);
+  protected void errorHandle(StampyMessage<?> message, Exception e, URI uri) throws Exception {
+    log.error("Handling error, sending error message to {}", uri, e);
     String receipt = message.getHeader().getHeaderValue(ClientMessageHeader.RECEIPT);
     ErrorMessage error = new ErrorMessage(StringUtils.isEmpty(receipt) ? "n/a" : receipt);
     error.getHeader().setMessageHeader("Could not execute " + message.getMessageType() + " - " + e.getMessage());
-    getGateway().sendMessage(error.toStompMessage(true), hostPort);
+    getGateway().sendMessage(error.toStompMessage(true), uri);
   }
 
   /**
@@ -107,16 +109,16 @@ public class StampyHandlerHelper {
    * 
    * @param e
    *          the e
-   * @param hostPort
+   * @param uri
    *          the host port
    * @throws Exception
    *           the exception
    */
-  protected void errorHandle(Exception e, HostPort hostPort) throws Exception {
-    log.error("Handling error, sending error message to {}", hostPort, e);
+  protected void errorHandle(Exception e, URI uri) throws Exception {
+    log.error("Handling error, sending error message to {}", uri, e);
     ErrorMessage error = new ErrorMessage("n/a");
     error.getHeader().setMessageHeader(e.getMessage());
-    getGateway().sendMessage(error.toStompMessage(true), hostPort);
+    getGateway().sendMessage(error.toStompMessage(true), uri);
   }
 
   /**
@@ -133,11 +135,11 @@ public class StampyHandlerHelper {
   /**
    * Reset heartbeat.
    * 
-   * @param hostPort
+   * @param uri
    *          the host port
    */
-  public void resetHeartbeat(HostPort hostPort) {
-    getHeartbeatContainer().reset(hostPort);
+  public void resetHeartbeat(URI uri) {
+    getHeartbeatContainer().reset(uri);
   }
 
   public StompMessageParser getParser() {

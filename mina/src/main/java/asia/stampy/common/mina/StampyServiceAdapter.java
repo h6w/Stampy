@@ -33,7 +33,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asia.stampy.common.StampyLibrary;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * This class keeps track of all connections and disconnections and is the
@@ -44,7 +45,7 @@ import asia.stampy.common.gateway.HostPort;
 public class StampyServiceAdapter extends MinaServiceAdapter {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private Map<HostPort, IoSession> sessions = new ConcurrentHashMap<HostPort, IoSession>();
+  private Map<URI, IoSession> sessions = new ConcurrentHashMap<URI, IoSession>();
 
   private boolean autoShutdown;
 
@@ -59,10 +60,10 @@ public class StampyServiceAdapter extends MinaServiceAdapter {
    */
   @Override
   public void sessionCreated(IoSession session) throws Exception {
-    HostPort hostPort = createHostPort(session);
-    log.info("Stampy MINA session created for {}", hostPort);
+    URI uri = createURI(session);
+    log.info("Stampy MINA session created for {}", uri);
 
-    sessions.put(hostPort, session);
+    sessions.put(uri, session);
   }
 
   /*
@@ -74,10 +75,10 @@ public class StampyServiceAdapter extends MinaServiceAdapter {
    */
   @Override
   public void sessionDestroyed(IoSession session) throws Exception {
-    HostPort hostPort = createHostPort(session);
-    log.info("Stampy MINA session destroyed for {}", hostPort);
+    URI uri = createURI(session);
+    log.info("Stampy MINA session destroyed for {}", uri);
 
-    sessions.remove(hostPort);
+    sessions.remove(uri);
 
     if (sessions.isEmpty() && isAutoShutdown()) {
       log.info("No more sessions and auto shutdown is true, shutting down gateway");
@@ -94,39 +95,45 @@ public class StampyServiceAdapter extends MinaServiceAdapter {
     sessions.clear();
   }
 
-  public void closeSession(HostPort hostPort) {
-    IoSession session = sessions.get(hostPort);
+  public void closeSession(URI uri) {
+    IoSession session = sessions.get(uri);
     if (session != null) {
       session.close(false);
     }
   }
 
-  private HostPort createHostPort(IoSession session) {
-    return new HostPort((InetSocketAddress) session.getRemoteAddress());
+  private URI createURI(IoSession session) {
+    try {
+	    return new URI("stomp","",((InetSocketAddress) session.getRemoteAddress()).getHostName(),((InetSocketAddress) session.getRemoteAddress()).getPort(),"","","");
+    }
+    catch (URISyntaxException e) {
+	    System.err.println(e);
+    }
+    return null;
   }
 
   /**
    * Returns true if the specified {@link HostPort} has an active session.
    * 
-   * @param hostPort
+   * @param uri
    *          the host port
    * @return true, if successful
    */
-  public boolean hasSession(HostPort hostPort) {
-    return sessions.containsKey(hostPort);
+  public boolean hasSession(URI uri) {
+    return sessions.containsKey(uri);
   }
 
   /**
    * Gets the session.
    * 
-   * @param hostPort
+   * @param uri
    *          the host port
    * @return the session
    */
-  public IoSession getSession(HostPort hostPort) {
-    IoSession session = sessions.get(hostPort);
+  public IoSession getSession(URI uri) {
+    IoSession session = sessions.get(uri);
 
-    if (session == null) throw new IllegalArgumentException(hostPort.toString() + " has no current session");
+    if (session == null) throw new IllegalArgumentException(uri.toString() + " has no current session");
 
     return session;
   }
@@ -136,7 +143,7 @@ public class StampyServiceAdapter extends MinaServiceAdapter {
    * 
    * @return the host ports
    */
-  public Set<HostPort> getHostPorts() {
+  public Set<URI> getURIs() {
     return Collections.unmodifiableSet(sessions.keySet());
   }
 
@@ -145,21 +152,21 @@ public class StampyServiceAdapter extends MinaServiceAdapter {
    * 
    * @param stompMessage
    *          the stomp message
-   * @param hostPort
+   * @param uri
    *          the host port
    */
-  public void sendMessage(byte[] stompMessage, HostPort hostPort) {
-    if (!hasSession(hostPort)) {
-      log.error("No session for {}, cannot send message {}", hostPort, stompMessage);
+  public void sendMessage(byte[] stompMessage, URI uri) {
+    if (!hasSession(uri)) {
+      log.error("No session for {}, cannot send message {}", uri, stompMessage);
       return;
     }
 
-    IoSession session = getSession(hostPort);
+    IoSession session = getSession(uri);
     if (session.isConnected() && !session.isClosing()) {
       session.write(stompMessage);
-      log.trace("Sent message {} to {}", stompMessage, hostPort);
+      log.trace("Sent message {} to {}", stompMessage, uri);
     } else {
-      log.error("Session is not active for {}, cannot send message {}", hostPort, stompMessage);
+      log.error("Session is not active for {}, cannot send message {}", uri, stompMessage);
     }
   }
 

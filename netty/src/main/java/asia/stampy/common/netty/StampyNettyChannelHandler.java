@@ -43,7 +43,8 @@ import org.slf4j.LoggerFactory;
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
 import asia.stampy.common.gateway.DefaultUnparseableMessageHandler;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
+import java.net.URISyntaxException;
 import asia.stampy.common.gateway.MessageListenerHaltException;
 import asia.stampy.common.gateway.StampyHandlerHelper;
 import asia.stampy.common.gateway.UnparseableMessageHandler;
@@ -72,7 +73,7 @@ public abstract class StampyNettyChannelHandler extends SimpleChannelUpstreamHan
 
   private UnparseableMessageHandler unparseableMessageHandler = new DefaultUnparseableMessageHandler();
 
-  private Map<HostPort, Channel> sessions = new ConcurrentHashMap<HostPort, Channel>();
+  private Map<URI, Channel> sessions = new ConcurrentHashMap<URI, Channel>();
 
   private StampyHandlerHelper helper = new StampyHandlerHelper();
 
@@ -85,13 +86,13 @@ public abstract class StampyNettyChannelHandler extends SimpleChannelUpstreamHan
    * org.jboss.netty.channel.MessageEvent)
    */
   public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-    final HostPort hostPort = createHostPort(ctx);
-    log.debug("Received raw message {} from {}", e.getMessage(), hostPort);
+    final URI uri = createURI(ctx);
+    log.debug("Received raw message {} from {}", e.getMessage(), uri);
 
-    helper.resetHeartbeat(hostPort);
+    helper.resetHeartbeat(uri);
 
     if (!(e.getMessage() instanceof ChannelBuffer)) {
-      log.error("Object {} is not a valid STOMP message, closing connection {}", e.getMessage(), hostPort);
+      log.error("Object {} is not a valid STOMP message, closing connection {}", e.getMessage(), uri);
       illegalAccess(ctx);
       return;
     }
@@ -112,7 +113,7 @@ public abstract class StampyNettyChannelHandler extends SimpleChannelUpstreamHan
 
       @Override
       public void run() {
-        asyncProcessing(hostPort, msg);
+        asyncProcessing(uri, msg);
       }
     };
 
@@ -126,8 +127,14 @@ public abstract class StampyNettyChannelHandler extends SimpleChannelUpstreamHan
    *          the ctx
    * @return the host port
    */
-  protected HostPort createHostPort(ChannelHandlerContext ctx) {
-    return new HostPort((InetSocketAddress) ctx.getChannel().getRemoteAddress());
+  protected URI createURI(ChannelHandlerContext ctx) {
+    try {
+      return new URI("stomp","",((InetSocketAddress) ctx.getChannel().getRemoteAddress()).getHostName(),((InetSocketAddress) ctx.getChannel().getRemoteAddress()).getPort(),"","","");
+    }
+    catch (URISyntaxException e) {
+      System.err.println(e);
+    }
+    return null;
   }
 
   /**
@@ -146,8 +153,8 @@ public abstract class StampyNettyChannelHandler extends SimpleChannelUpstreamHan
    *           the exception
    */
   public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
-    HostPort hostPort = createHostPort(ctx);
-    sessions.put(hostPort, ctx.getChannel());
+    URI uri = createURI(ctx);
+    sessions.put(uri, ctx.getChannel());
     ctx.sendUpstream(e);
   }
 
@@ -162,8 +169,8 @@ public abstract class StampyNettyChannelHandler extends SimpleChannelUpstreamHan
    *           the exception
    */
   public void channelDisconnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
-    HostPort hostPort = createHostPort(ctx);
-    sessions.remove(hostPort);
+    URI uri = createURI(ctx);
+    sessions.remove(uri);
     ctx.sendUpstream(e);
   }
 
@@ -172,19 +179,19 @@ public abstract class StampyNettyChannelHandler extends SimpleChannelUpstreamHan
    * 
    * @return the connected host ports
    */
-  public Set<HostPort> getConnectedHostPorts() {
+  public Set<URI> getConnectedHostPorts() {
     return Collections.unmodifiableSet(sessions.keySet());
   }
 
   /**
    * Checks if is connected.
    * 
-   * @param hostPort
+   * @param uri
    *          the host port
    * @return true, if is connected
    */
-  public boolean isConnected(HostPort hostPort) {
-    return sessions.containsKey(hostPort);
+  public boolean isConnected(URI uri) {
+    return sessions.containsKey(uri);
   }
 
   /**
@@ -204,21 +211,29 @@ public abstract class StampyNettyChannelHandler extends SimpleChannelUpstreamHan
    * 
    * @param message
    *          the message
-   * @param hostPort
+   * @param uri
    *          the host port
    */
-  public void sendMessage(byte[] message, HostPort hostPort) {
-    sendMessage(message, hostPort, sessions.get(hostPort));
+  public void sendMessage(byte[] message, URI uri) {
+    sendMessage(message, uri, sessions.get(uri));
   }
 
-  private synchronized void sendMessage(byte[] message, HostPort hostPort, Channel channel) {
+  private synchronized void sendMessage(byte[] message, URI uri, Channel channel) {
     if (channel == null || !channel.isConnected()) {
       log.error("Channel is not connected, cannot send message {}", message);
       return;
     }
 
-    if (hostPort == null) hostPort = new HostPort((InetSocketAddress) channel.getRemoteAddress());
-    helper.resetHeartbeat(hostPort);
+    if (uri == null) {
+      try {
+        uri = new URI("stomp","",((InetSocketAddress) channel.getRemoteAddress()).getHostName(),((InetSocketAddress) channel.getRemoteAddress()).getPort(),"","","");
+      }
+      catch (URISyntaxException e) {
+	System.err.println(e);
+      }
+    }
+
+    helper.resetHeartbeat(uri);
 
     channel.write(ChannelBuffers.wrappedBuffer(message));
   }
@@ -226,19 +241,19 @@ public abstract class StampyNettyChannelHandler extends SimpleChannelUpstreamHan
   /**
    * Close.
    * 
-   * @param hostPort
+   * @param uri
    *          the host port
    */
-  public void close(HostPort hostPort) {
-    if (!isConnected(hostPort)) {
+  public void close(URI uri) {
+    if (!isConnected(uri)) {
       log.warn("{} is already closed");
       return;
     }
 
-    Channel channel = sessions.get(hostPort);
+    Channel channel = sessions.get(uri);
     ChannelFuture cf = channel.close();
     cf.awaitUninterruptibly();
-    log.info("Session for {} has been closed", hostPort);
+    log.info("Session for {} has been closed", uri);
   }
 
   /**
@@ -247,23 +262,23 @@ public abstract class StampyNettyChannelHandler extends SimpleChannelUpstreamHan
    * off the thread NETTY uses and ensures the messages are processed in the
    * order they are received.
    * 
-   * @param hostPort
+   * @param uri
    *          the host port
    * @param msg
    *          the msg
    */
-  protected void asyncProcessing(HostPort hostPort, byte[] msg) {
+  protected void asyncProcessing(URI uri, byte[] msg) {
     StampyMessage<?> sm = null;
     try {
       sm = getParser().parseMessage(msg);
 
-      getGateway().notifyMessageListeners(sm, hostPort);
+      getGateway().notifyMessageListeners(sm, uri);
     } catch (UnparseableException e) {
-      helper.handleUnparseableMessage(hostPort, new String(msg), e);
+      helper.handleUnparseableMessage(uri, new String(msg), e);
     } catch (MessageListenerHaltException e) {
       // halting
     } catch (Exception e) {
-      helper.handleUnexpectedError(hostPort, new String(msg), sm, e);
+      helper.handleUnexpectedError(uri, new String(msg), sm, e);
     }
   }
 
@@ -369,8 +384,8 @@ public abstract class StampyNettyChannelHandler extends SimpleChannelUpstreamHan
    * org.jboss.netty.channel.ExceptionEvent)
    */
   public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
-    HostPort hostPort = createHostPort(ctx);
-    log.error("Unexpected Netty exception for {}", hostPort, e.getCause());
+    URI uri = createURI(ctx);
+    log.error("Unexpected Netty exception for {}", uri, e.getCause());
   }
 
   /**

@@ -18,6 +18,7 @@
  */
 package asia.stampy.common.gateway;
 
+import java.net.URI;
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.message.StampyMessage;
 import asia.stampy.common.message.StompMessageType;
@@ -52,10 +53,10 @@ public interface StampyMessageListener {
    * 
    * @param message
    *          the message
-   * @param hostPort
+   * @param uri
    *          the host port
    * @throws Exception
    *           the exception
    */
-  void messageReceived(StampyMessage<?> message, HostPort hostPort) throws Exception;
+  void messageReceived(StampyMessage<?> message, URI uri) throws Exception;
 }

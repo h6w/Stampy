@@ -63,7 +63,7 @@ public class DisconnectListenerAndInterceptorTest extends AbstractListenerTest {
     ReceiptMessage receipt = new ReceiptMessage("blah");
     assertFalse(disconnect.isForMessage(receipt));
 
-    disconnect.interceptMessage(message, hostPort);
+    disconnect.interceptMessage(message, uri);
     assertTrue(disconnect.isForMessage(receipt));
   }
 
@@ -75,12 +75,12 @@ public class DisconnectListenerAndInterceptorTest extends AbstractListenerTest {
     ReceiptMessage message = new ReceiptMessage("blah");
 
     disconnect.setCloseOnDisconnectMessage(false);
-    disconnect.messageReceived(message, hostPort);
+    disconnect.messageReceived(message, uri);
 
     disconnect.setReceiptId("test");
     disconnect.setCloseOnDisconnectMessage(true);
 
-    disconnect.messageReceived(message, hostPort);
+    disconnect.messageReceived(message, uri);
   }
 
 }

@@ -26,7 +26,7 @@ import org.apache.mina.core.service.IoServiceListener;
 
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 
 /**
  * Defines the <a href="https://mina.apache.org">MINA</a>-specific methods for
@@ -95,8 +95,8 @@ public abstract class AbstractStampyMinaMessageGateway extends AbstractStampyMes
    * asia.stampy.common.AbstractStampyMessageGateway#getConnectedHostPorts()
    */
   @Override
-  public Set<HostPort> getConnectedHostPorts() {
-    return serviceAdapter.getHostPorts();
+  public Set<URI> getConnectedHostPorts() {
+    return serviceAdapter.getURIs();
   }
 
 }

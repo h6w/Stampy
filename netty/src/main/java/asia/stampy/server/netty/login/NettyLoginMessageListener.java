@@ -30,7 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asia.stampy.common.StampyLibrary;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.MessageListenerHaltException;
 import asia.stampy.common.gateway.StampyMessageListener;
 import asia.stampy.server.listener.login.AbstractLoginMessageListener;
@@ -63,10 +63,10 @@ public class NettyLoginMessageListener extends AbstractLoginMessageListener<Serv
   protected void ensureCleanup() {
     getGateway().addHandler(new SimpleChannelUpstreamHandler() {
       public void channelDisconnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
-        HostPort hostPort = new HostPort((InetSocketAddress) ctx.getChannel().getRemoteAddress());
-        if (loggedInConnections.contains(hostPort)) {
-          log.debug("{} session terminated before DISCONNECT message received, cleaning up", hostPort);
-          loggedInConnections.remove(hostPort);
+        URI uri = new URI("stomp","",((InetSocketAddress) ctx.getChannel().getRemoteAddress()).getHostName(),((InetSocketAddress) ctx.getChannel().getRemoteAddress()).getPort(),"","","");
+        if (loggedInConnections.contains(uri)) {
+          log.debug("{} session terminated before DISCONNECT message received, cleaning up", uri);
+          loggedInConnections.remove(uri);
         }
       }
     });

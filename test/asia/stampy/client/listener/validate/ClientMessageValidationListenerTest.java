@@ -69,7 +69,7 @@ public class ClientMessageValidationListenerTest extends AbstractListenerTest {
     for (StompMessageType type : CLIENT_TYPES) {
       when(message.getMessageType()).thenReturn(type);
       try {
-        validation.messageReceived(message, hostPort);
+        validation.messageReceived(message, uri);
         fail("Should have thrown exception for client type " + type);
       } catch (IllegalArgumentException expected) {
 
@@ -82,7 +82,7 @@ public class ClientMessageValidationListenerTest extends AbstractListenerTest {
     int cntr = 1;
     for (StompMessageType type : SERVER_TYPES) {
       when(message.getMessageType()).thenReturn(type);
-      validation.messageReceived(message, hostPort);
+      validation.messageReceived(message, uri);
       verify(message, times(cntr)).validate();
       cntr++;
     }

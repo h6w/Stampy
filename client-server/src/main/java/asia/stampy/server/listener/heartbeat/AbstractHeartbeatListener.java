@@ -29,7 +29,7 @@ import asia.stampy.client.message.connect.ConnectMessage;
 import asia.stampy.client.message.stomp.StompMessage;
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.StampyMessageListener;
 import asia.stampy.common.heartbeat.HeartbeatContainer;
 import asia.stampy.common.heartbeat.StampyHeartbeatContainer;
@@ -94,9 +94,9 @@ public abstract class AbstractHeartbeatListener<SVR extends AbstractStampyMessag
    * stampy.common.message.StampyMessage, asia.stampy.common.HostPort)
    */
   @Override
-  public void messageReceived(StampyMessage<?> message, HostPort hostPort) throws Exception {
+  public void messageReceived(StampyMessage<?> message, URI uri) throws Exception {
     if (isDisconnectMessage(message)) {
-      getHeartbeatContainer().remove(hostPort);
+      getHeartbeatContainer().remove(uri);
       return;
     }
 
@@ -107,19 +107,19 @@ public abstract class AbstractHeartbeatListener<SVR extends AbstractStampyMessag
 
     int heartbeat = Math.max(requested, getGateway().getHeartbeat());
 
-    log.info("Starting heartbeats for {} at {} ms intervals", hostPort, heartbeat);
+    log.info("Starting heartbeats for {} at {} ms intervals", uri, heartbeat);
 
-    getHeartbeatContainer().start(hostPort, getGateway(), heartbeat);
+    getHeartbeatContainer().start(uri, getGateway(), heartbeat);
   }
 
   /**
    * Reset heartbeat.
    * 
-   * @param hostPort
+   * @param uri
    *          the host port
    */
-  public void resetHeartbeat(HostPort hostPort) {
-    getHeartbeatContainer().reset(hostPort);
+  public void resetHeartbeat(URI uri) {
+    getHeartbeatContainer().reset(uri);
   }
 
   private ConnectHeader getConnectHeader(StampyMessage<?> message) {

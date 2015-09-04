@@ -34,7 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asia.stampy.common.StampyLibrary;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.message.interceptor.InterceptException;
 import asia.stampy.common.mina.AbstractStampyMinaMessageGateway;
 
@@ -109,8 +109,8 @@ public class ServerMinaMessageGateway extends AbstractStampyMinaMessageGateway {
    * .common.HostPort)
    */
   @Override
-  public boolean isConnected(HostPort hostPort) {
-    return serviceAdapter.hasSession(hostPort) && acceptor.isActive();
+  public boolean isConnected(URI uri) {
+    return serviceAdapter.hasSession(uri) && acceptor.isActive();
   }
 
   /*
@@ -121,16 +121,16 @@ public class ServerMinaMessageGateway extends AbstractStampyMinaMessageGateway {
    * , asia.stampy.common.HostPort)
    */
   @Override
-  public void sendMessage(byte[] message, HostPort hostPort) throws InterceptException {
-    if (!isConnected(hostPort)) {
-      log.warn("Attempting to send message {} to {} when the acceptor is not active", message, hostPort);
+  public void sendMessage(byte[] message, URI uri) throws InterceptException {
+    if (!isConnected(uri)) {
+      log.warn("Attempting to send message {} to {} when the acceptor is not active", message, uri);
       throw new IllegalStateException("The acceptor is not active, cannot send message");
     }
 
     interceptOutgoingMessage(new String(message));
 
-    getHandler().getHeartbeatContainer().reset(hostPort);
-    serviceAdapter.sendMessage(message, hostPort);
+    getHandler().getHeartbeatContainer().reset(uri);
+    serviceAdapter.sendMessage(message, uri);
   }
 
   /*
@@ -149,8 +149,8 @@ public class ServerMinaMessageGateway extends AbstractStampyMinaMessageGateway {
 
     interceptOutgoingMessage(new String(message));
 
-    for (HostPort hostPort : serviceAdapter.getHostPorts()) {
-      getHandler().getHeartbeatContainer().reset(hostPort);
+    for (URI uri : serviceAdapter.getURIs()) {
+      getHandler().getHeartbeatContainer().reset(uri);
     }
 
     acceptor.broadcast(message);
@@ -164,11 +164,11 @@ public class ServerMinaMessageGateway extends AbstractStampyMinaMessageGateway {
    * .common.HostPort)
    */
   @Override
-  public void closeConnection(HostPort hostPort) {
-    if (!serviceAdapter.hasSession(hostPort)) return;
-    log.info("closeConnection() invoked, closing session for {}", hostPort);
+  public void closeConnection(URI uri) {
+    if (!serviceAdapter.hasSession(uri)) return;
+    log.info("closeConnection() invoked, closing session for {}", uri);
 
-    IoSession session = serviceAdapter.getSession(hostPort);
+    IoSession session = serviceAdapter.getSession(uri);
     CloseFuture cf = session.close(false);
     cf.awaitUninterruptibly();
   }

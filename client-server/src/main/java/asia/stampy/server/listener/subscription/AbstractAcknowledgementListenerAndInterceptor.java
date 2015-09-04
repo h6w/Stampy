@@ -33,7 +33,7 @@ import asia.stampy.client.message.nack.NackHeader;
 import asia.stampy.client.message.nack.NackMessage;
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.StampyMessageListener;
 import asia.stampy.common.message.StampyMessage;
 import asia.stampy.common.message.StompMessageType;
@@ -57,7 +57,7 @@ public abstract class AbstractAcknowledgementListenerAndInterceptor<SVR extends 
   private StampyAcknowledgementHandler handler;
 
   /** The messages. */
-  protected Map<HostPort, Queue<String>> messages = new ConcurrentHashMap<HostPort, Queue<String>>();
+  protected Map<URI, Queue<String>> messages = new ConcurrentHashMap<URI, Queue<String>>();
 
   private Timer ackTimer = new Timer("Stampy Acknowledgement Timer", true);
 
@@ -100,13 +100,13 @@ public abstract class AbstractAcknowledgementListenerAndInterceptor<SVR extends 
    * stampy.common.message.StampyMessage, asia.stampy.common.HostPort)
    */
   @Override
-  public void messageReceived(StampyMessage<?> message, HostPort hostPort) throws Exception {
+  public void messageReceived(StampyMessage<?> message, URI uri) throws Exception {
     switch (message.getMessageType()) {
     case ACK:
-      evaluateAck(((AckMessage) message).getHeader(), hostPort);
+      evaluateAck(((AckMessage) message).getHeader(), uri);
       break;
     case NACK:
-      evaluateNack(((NackMessage) message).getHeader(), hostPort);
+      evaluateNack(((NackMessage) message).getHeader(), uri);
       break;
     default:
       break;
@@ -123,27 +123,27 @@ public abstract class AbstractAcknowledgementListenerAndInterceptor<SVR extends 
    * asia.stampy.common.HostPort)
    */
   @Override
-  public void interceptMessage(StampyMessage<?> message, HostPort hostPort) throws InterceptException {
+  public void interceptMessage(StampyMessage<?> message, URI uri) throws InterceptException {
     MessageMessage msg = (MessageMessage) message;
 
     String ack = msg.getHeader().getAck();
 
-    Queue<String> queue = messages.get(hostPort);
+    Queue<String> queue = messages.get(uri);
     if (queue == null) {
       queue = new ConcurrentLinkedQueue<String>();
-      messages.put(hostPort, queue);
+      messages.put(uri, queue);
     }
 
     queue.add(ack);
-    startTimerTask(hostPort, ack);
+    startTimerTask(uri, ack);
   }
 
-  private void startTimerTask(final HostPort hostPort, final String ack) {
+  private void startTimerTask(final URI uri, final String ack) {
     TimerTask task = new TimerTask() {
 
       @Override
       public void run() {
-        Queue<String> q = messages.get(hostPort);
+        Queue<String> q = messages.get(uri);
         if (q == null || !q.contains(ack)) return;
 
         getHandler().noAcknowledgementReceived(ack);
@@ -154,37 +154,37 @@ public abstract class AbstractAcknowledgementListenerAndInterceptor<SVR extends 
     ackTimer.schedule(task, getAckTimeoutMillis());
   }
 
-  private void evaluateNack(NackHeader header, HostPort hostPort) throws Exception {
+  private void evaluateNack(NackHeader header, URI uri) throws Exception {
     String id = header.getId();
-    if (hasMessageAck(id, hostPort)) {
-      clearMessageAck(id, hostPort);
+    if (hasMessageAck(id, uri)) {
+      clearMessageAck(id, uri);
       getHandler().nackReceived(id, header.getReceipt(), header.getTransaction());
     } else {
       throw new UnexpectedAcknowledgementException("No NACK message expected, yet received id " + id + " from "
-          + hostPort);
+          + uri);
     }
   }
 
-  private void evaluateAck(AckHeader header, HostPort hostPort) throws Exception {
+  private void evaluateAck(AckHeader header, URI uri) throws Exception {
     String id = header.getId();
-    if (hasMessageAck(id, hostPort)) {
-      clearMessageAck(id, hostPort);
+    if (hasMessageAck(id, uri)) {
+      clearMessageAck(id, uri);
       getHandler().ackReceived(id, header.getReceipt(), header.getTransaction());
     } else {
       throw new UnexpectedAcknowledgementException("No ACK message expected, yet received id " + id + " from "
-          + hostPort);
+          + uri);
     }
   }
 
-  private boolean hasMessageAck(String messageId, HostPort hostPort) {
-    Queue<String> ids = messages.get(hostPort);
+  private boolean hasMessageAck(String messageId, URI uri) {
+    Queue<String> ids = messages.get(uri);
     if (ids == null || ids.isEmpty()) return false;
 
     return ids.contains(messageId);
   }
 
-  private void clearMessageAck(String messageId, HostPort hostPort) {
-    Queue<String> ids = messages.get(hostPort);
+  private void clearMessageAck(String messageId, URI uri) {
+    Queue<String> ids = messages.get(uri);
     if (ids == null) return;
 
     ids.remove(messageId);

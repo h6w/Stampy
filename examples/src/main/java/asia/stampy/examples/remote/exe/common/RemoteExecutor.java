@@ -21,7 +21,7 @@ package asia.stampy.examples.remote.exe.common;
 import asia.stampy.client.message.send.SendMessage;
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 
 /**
  * Executes a {@link Remoteable} object and if a receipt has been specified,
@@ -38,13 +38,13 @@ public class RemoteExecutor {
    * 
    * @param message
    *          the message
-   * @param hostPort
+   * @param uri
    *          the host port
    * @return true, if successful
    * @throws Exception
    *           the exception
    */
-  public boolean processStompMessage(SendMessage message, HostPort hostPort) throws Exception {
+  public boolean processStompMessage(SendMessage message, URI uri) throws Exception {
     Remoteable remoteable = message.getBody();
 
     remoteable.setProperties(message.getHeader().getHeaders());

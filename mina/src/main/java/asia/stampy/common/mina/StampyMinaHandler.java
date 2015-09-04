@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
 import asia.stampy.common.gateway.DefaultUnparseableMessageHandler;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.MessageListenerHaltException;
 import asia.stampy.common.gateway.StampyHandlerHelper;
 import asia.stampy.common.gateway.UnparseableMessageHandler;
@@ -88,13 +88,13 @@ public abstract class StampyMinaHandler extends IoHandlerAdapter {
    */
   @Override
   public void messageReceived(IoSession session, Object message) throws Exception {
-    final HostPort hostPort = new HostPort((InetSocketAddress) session.getRemoteAddress());
-    log.debug("Received raw message {} from {}", message, hostPort);
+    final URI uri = new URI("stomp","",((InetSocketAddress) session.getRemoteAddress()).getHostName(),((InetSocketAddress) session.getRemoteAddress()).getPort(),"","","");
+    log.debug("Received raw message {} from {}", message, uri);
 
-    helper.resetHeartbeat(hostPort);
+    helper.resetHeartbeat(uri);
 
     if (!(message instanceof byte[])) {
-      log.error("Object {} is not a valid STOMP message, closing connection {}", message, hostPort);
+      log.error("Object {} is not a valid STOMP message, closing connection {}", message, uri);
       illegalAccess(session);
       return;
     }
@@ -111,7 +111,7 @@ public abstract class StampyMinaHandler extends IoHandlerAdapter {
 
       @Override
       public void run() {
-        asyncProcessing(hostPort, msg);
+        asyncProcessing(uri, msg);
       }
     };
 
@@ -139,23 +139,23 @@ public abstract class StampyMinaHandler extends IoHandlerAdapter {
    * off the thread MINA uses and ensures the messages are processed in the
    * order they are received.
    * 
-   * @param hostPort
+   * @param uri
    *          the host port
    * @param msg
    *          the msg
    */
-  protected void asyncProcessing(HostPort hostPort, byte[] msg) {
+  protected void asyncProcessing(URI uri, byte[] msg) {
     StampyMessage<?> sm = null;
     try {
       sm = getParser().parseMessage(msg);
 
-      getGateway().notifyMessageListeners(sm, hostPort);
+      getGateway().notifyMessageListeners(sm, uri);
     } catch (UnparseableException e) {
-      helper.handleUnparseableMessage(hostPort, new String(msg), e);
+      helper.handleUnparseableMessage(uri, new String(msg), e);
     } catch (MessageListenerHaltException e) {
       // halting
     } catch (Exception e) {
-      helper.handleUnexpectedError(hostPort, new String(msg), sm, e);
+      helper.handleUnexpectedError(uri, new String(msg), sm, e);
     }
   }
 
@@ -279,8 +279,8 @@ public abstract class StampyMinaHandler extends IoHandlerAdapter {
    * .mina.core.session.IoSession, java.lang.Throwable)
    */
   public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
-    HostPort hostPort = new HostPort((InetSocketAddress) session.getRemoteAddress());
+    URI uri = new URI("stomp","",((InetSocketAddress) session.getRemoteAddress()).getHostName(),((InetSocketAddress) session.getRemoteAddress()).getPort(),"","","");
 
-    log.error("Unexpected exception for {}", hostPort, cause);
+    log.error("Unexpected exception for {}", uri, cause);
   }
 }

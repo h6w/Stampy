@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.StampyMessageListener;
 import asia.stampy.common.message.StampyMessage;
 import asia.stampy.common.message.StompMessageType;
@@ -40,7 +40,7 @@ import asia.stampy.common.message.StompMessageType;
 public abstract class AbstractConnectStateListener<SVR extends AbstractStampyMessageGateway> implements
     StampyMessageListener {
 
-  protected Queue<HostPort> connectedClients = new ConcurrentLinkedQueue<HostPort>();
+  protected Queue<URI> connectedClients = new ConcurrentLinkedQueue<URI>();
   private SVR gateway;
 
   private static StompMessageType[] TYPES = StompMessageType.values();
@@ -74,7 +74,7 @@ public abstract class AbstractConnectStateListener<SVR extends AbstractStampyMes
    * stampy.common.message.StampyMessage, asia.stampy.common.HostPort)
    */
   @Override
-  public void messageReceived(StampyMessage<?> message, HostPort hostPort) throws Exception {
+  public void messageReceived(StampyMessage<?> message, URI uri) throws Exception {
     switch (message.getMessageType()) {
     case ABORT:
     case ACK:
@@ -84,15 +84,15 @@ public abstract class AbstractConnectStateListener<SVR extends AbstractStampyMes
     case SEND:
     case SUBSCRIBE:
     case UNSUBSCRIBE:
-      checkConnected(hostPort);
+      checkConnected(uri);
       break;
     case CONNECT:
     case STOMP:
-      checkDisconnected(hostPort);
-      connectedClients.add(hostPort);
+      checkDisconnected(uri);
+      connectedClients.add(uri);
       break;
     case DISCONNECT:
-      connectedClients.remove(hostPort);
+      connectedClients.remove(uri);
       break;
     default:
       throw new IllegalArgumentException("Unexpected message type " + message.getMessageType());
@@ -101,16 +101,16 @@ public abstract class AbstractConnectStateListener<SVR extends AbstractStampyMes
 
   }
 
-  private void checkDisconnected(HostPort hostPort) throws AlreadyConnectedException {
-    if (!connectedClients.contains(hostPort)) return;
+  private void checkDisconnected(URI uri) throws AlreadyConnectedException {
+    if (!connectedClients.contains(uri)) return;
 
-    throw new AlreadyConnectedException(hostPort + " is already connected");
+    throw new AlreadyConnectedException(uri + " is already connected");
   }
 
-  private void checkConnected(HostPort hostPort) throws NotConnectedException {
-    if (connectedClients.contains(hostPort)) return;
+  private void checkConnected(URI uri) throws NotConnectedException {
+    if (connectedClients.contains(uri)) return;
 
-    throw new NotConnectedException("CONNECT message required for " + hostPort);
+    throw new NotConnectedException("CONNECT message required for " + uri);
   }
 
   /**

@@ -28,7 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asia.stampy.common.StampyLibrary;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.message.StompMessageType;
 import asia.stampy.common.mina.MinaServiceAdapter;
 import asia.stampy.server.listener.transaction.AbstractTransactionListener;
@@ -50,10 +50,10 @@ public class MinaTransactionListener extends AbstractTransactionListener<ServerM
 
       @Override
       public void sessionDestroyed(IoSession session) throws Exception {
-        HostPort hostPort = new HostPort((InetSocketAddress) session.getRemoteAddress());
-        if (activeTransactions.containsKey(hostPort)) {
-          log.debug("{} session terminated with outstanding transaction, cleaning up", hostPort);
-          activeTransactions.remove(hostPort);
+        URI uri = new URI("stomp","",((InetSocketAddress) session.getRemoteAddress()).getHostName(),((InetSocketAddress) session.getRemoteAddress()).getPort(),"","","");
+        if (activeTransactions.containsKey(uri)) {
+          log.debug("{} session terminated with outstanding transaction, cleaning up", uri);
+          activeTransactions.remove(uri);
         }
       }
     });

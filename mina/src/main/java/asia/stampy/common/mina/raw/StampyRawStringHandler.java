@@ -32,7 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asia.stampy.common.StampyLibrary;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.MessageListenerHaltException;
 import asia.stampy.common.message.StampyMessage;
 import asia.stampy.common.message.StompMessageType;
@@ -50,7 +50,7 @@ import asia.stampy.common.parsing.UnparseableException;
 public abstract class StampyRawStringHandler extends StampyMinaHandler {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private Map<HostPort, byte[]> messageParts = new ConcurrentHashMap<HostPort, byte[]>();
+  private Map<URI, byte[]> messageParts = new ConcurrentHashMap<URI, byte[]>();
 
   /*
    * (non-Javadoc)
@@ -61,13 +61,13 @@ public abstract class StampyRawStringHandler extends StampyMinaHandler {
    */
   @Override
   public void messageReceived(IoSession session, Object message) throws Exception {
-    final HostPort hostPort = new HostPort((InetSocketAddress) session.getRemoteAddress());
-    log.trace("Received raw message {} from {}", message, hostPort);
+    final URI uri = new URI("stomp","",((InetSocketAddress) session.getRemoteAddress()).getHostName(),((InetSocketAddress) session.getRemoteAddress()).getPort(),"","","");
+    log.trace("Received raw message {} from {}", message, uri);
 
-    helper.resetHeartbeat(hostPort);
+    helper.resetHeartbeat(uri);
 
     if (!(message instanceof byte[])) {
-      log.error("Object {} is not a valid STOMP message, closing connection {}", message, hostPort);
+      log.error("Object {} is not a valid STOMP message, closing connection {}", message, uri);
       illegalAccess(session);
       return;
     }
@@ -78,7 +78,7 @@ public abstract class StampyRawStringHandler extends StampyMinaHandler {
 
       @Override
       public void run() {
-        asyncProcessing(hostPort, msg);
+        asyncProcessing(uri, msg);
       }
     };
 
@@ -103,55 +103,55 @@ public abstract class StampyRawStringHandler extends StampyMinaHandler {
    * .core.session.IoSession, asia.stampy.common.HostPort, java.lang.String)
    */
   @Override
-  protected void asyncProcessing(HostPort hostPort, byte[] msg) {
+  protected void asyncProcessing(URI uri, byte[] msg) {
     try {
-      byte[] existing = messageParts.get(hostPort);
+      byte[] existing = messageParts.get(uri);
       if (existing.length == 0) {
-        processNewMessage(hostPort, msg);
+        processNewMessage(uri, msg);
       } else {
         ByteArrayOutputStream concat = new ByteArrayOutputStream( );
         concat.write(existing);
         concat.write(msg);
-        processMessage(concat.toByteArray(), hostPort);
+        processMessage(concat.toByteArray(), uri);
       }
     } catch (UnparseableException e) {
-      helper.handleUnparseableMessage(hostPort, new String(msg), e);
+      helper.handleUnparseableMessage(uri, new String(msg), e);
     } catch (MessageListenerHaltException e) {
       // halting
     } catch (Exception e) {
-      helper.handleUnexpectedError(hostPort, new String(msg), null, e);
+      helper.handleUnexpectedError(uri, new String(msg), null, e);
     }
   }
 
-  private void processNewMessage(HostPort hostPort, byte[] msg) throws Exception, UnparseableException, IOException {
+  private void processNewMessage(URI uri, byte[] msg) throws Exception, UnparseableException, IOException {
     if (helper.isHeartbeat(msg)) {
       log.trace("Received heartbeat");
       return;
     } else if (isStompMessage(msg)) {
-      processMessage(msg, hostPort);
+      processMessage(msg, uri);
     } else {
-      helper.handleUnparseableMessage(hostPort, new String(msg), null);
+      helper.handleUnparseableMessage(uri, new String(msg), null);
     }
   }
 
-  private void processMessage(byte[] msg, HostPort hostPort) throws Exception {
+  private void processMessage(byte[] msg, URI uri) throws Exception {
     int length = msg.length;
     int idx = indexOfEOM(msg);
 
     //TODO this is not correct, a single message may contain \0 if the content-length is set.
     if (idx == length - 1) {
       log.trace("Creating StampyMessage from {}", msg);
-      processStompMessage(msg, hostPort);
+      processStompMessage(msg, uri);
     } else if (idx > 0) {
       log.trace("Multiple messages detected, parsing {}", msg);
-      processMultiMessages(msg, hostPort);
+      processMultiMessages(msg, uri);
     } else {
-      messageParts.put(hostPort, msg);
-      log.trace("Message part {} stored for {}", msg, hostPort);
+      messageParts.put(uri, msg);
+      log.trace("Message part {} stored for {}", msg, uri);
     }
   }
 
-  private void processMultiMessages(byte[] msg, HostPort hostPort) throws Exception {
+  private void processMultiMessages(byte[] msg, URI uri) throws Exception {
     int idx = indexOfEOM(msg);
     byte[] fullMessage = Arrays.copyOfRange(msg, 0, idx +1);
     byte[] partMessage = Arrays.copyOfRange(msg, idx, msg.length-1);
@@ -159,21 +159,21 @@ public abstract class StampyRawStringHandler extends StampyMinaHandler {
       partMessage = Arrays.copyOfRange(partMessage, 1, partMessage.length-1);
     }
 
-    processStompMessage(fullMessage, hostPort);
+    processStompMessage(fullMessage, uri);
 
-    processMessage(partMessage, hostPort);
+    processMessage(partMessage, uri);
   }
 
-  private void processStompMessage(byte[] msg, HostPort hostPort) throws MessageListenerHaltException {
-    messageParts.remove(hostPort);
+  private void processStompMessage(byte[] msg, URI uri) throws MessageListenerHaltException {
+    messageParts.remove(uri);
     StampyMessage<?> sm = null;
     try {
       sm = getParser().parseMessage(msg);
-      getGateway().notifyMessageListeners(sm, hostPort);
+      getGateway().notifyMessageListeners(sm, uri);
     } catch (MessageListenerHaltException e) {
       throw e;
     } catch (Exception e) {
-      helper.handleUnexpectedError(hostPort, new String(msg), sm, e);
+      helper.handleUnexpectedError(uri, new String(msg), sm, e);
     }
   }
 

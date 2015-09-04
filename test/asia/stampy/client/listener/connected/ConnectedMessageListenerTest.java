@@ -54,18 +54,18 @@ public class ConnectedMessageListenerTest extends AbstractListenerTest {
   public void testHeartbeatStartFaster() throws Exception {
     message.getHeader().setHeartbeat(5, 5);
     
-    connected.messageReceived(message, hostPort);
+    connected.messageReceived(message, uri);
     
-    verify(heartbeatContainer).start(hostPort, clientGateway, 10);
+    verify(heartbeatContainer).start(uri, clientGateway, 10);
   }
   
   @Test
   public void testHeartbeatStartSlower() throws Exception {
     message.getHeader().setHeartbeat(15, 15);
     
-    connected.messageReceived(message, hostPort);
+    connected.messageReceived(message, uri);
     
-    verify(heartbeatContainer).start(hostPort, clientGateway, 15);
+    verify(heartbeatContainer).start(uri, clientGateway, 15);
   }
 
 }

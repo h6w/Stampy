@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asia.stampy.common.StampyLibrary;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.message.StampyMessage;
 import asia.stampy.common.message.interceptor.InterceptException;
 import asia.stampy.common.mina.AbstractStampyMinaMessageGateway;
@@ -114,8 +114,8 @@ public class ClientMinaMessageGateway extends AbstractStampyMinaMessageGateway {
    * .common.HostPort)
    */
   @Override
-  public boolean isConnected(HostPort hostPort) {
-    return serviceAdapter.hasSession(hostPort) && connector.isActive();
+  public boolean isConnected(URI uri) {
+    return serviceAdapter.hasSession(uri) && connector.isActive();
   }
 
   /*
@@ -126,7 +126,7 @@ public class ClientMinaMessageGateway extends AbstractStampyMinaMessageGateway {
    * .common.HostPort)
    */
   @Override
-  public void closeConnection(HostPort hostPort) {
+  public void closeConnection(URI uri) {
     serviceAdapter.closeAllSessions();
     connector.dispose();
   }
@@ -148,14 +148,14 @@ public class ClientMinaMessageGateway extends AbstractStampyMinaMessageGateway {
    * 
    * @param message
    *          the message
-   * @param hostPort
+   * @param uri
    *          the host port
    * @throws InterceptException
    *           the intercept exception
    * 
    */
   @Override
-  public void sendMessage(byte[] message, HostPort hostPort) throws InterceptException {
+  public void sendMessage(byte[] message, URI uri) throws InterceptException {
     broadcastMessage(message);
   }
 
@@ -175,8 +175,8 @@ public class ClientMinaMessageGateway extends AbstractStampyMinaMessageGateway {
 
     interceptOutgoingMessage(new String(message));
 
-    for (HostPort hostPort : serviceAdapter.getHostPorts()) {
-      getHandler().getHeartbeatContainer().reset(hostPort);
+    for (URI uri : serviceAdapter.getURIs()) {
+      getHandler().getHeartbeatContainer().reset(uri);
     }
     connector.broadcast(message);
   }

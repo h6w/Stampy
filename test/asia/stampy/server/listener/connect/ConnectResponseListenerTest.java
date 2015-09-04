@@ -57,8 +57,8 @@ public class ConnectResponseListenerTest extends AbstractListenerTest {
     int cntr = 1;
     for (StompMessageType type : TYPES) {
       StampyMessage<?> message = getMessage(type);
-      connectResponse.messageReceived(message, hostPort);
-      verify(serverGateway, times(cntr)).sendMessage(any(ConnectedMessage.class), eq(hostPort));
+      connectResponse.messageReceived(message, uri);
+      verify(serverGateway, times(cntr)).sendMessage(any(ConnectedMessage.class), eq(uri));
       cntr++;
     }
   }

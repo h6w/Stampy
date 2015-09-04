@@ -41,7 +41,7 @@ import asia.stampy.client.message.subscribe.SubscribeMessage;
 import asia.stampy.client.message.unsubscribe.UnsubscribeMessage;
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.StampyMessageListener;
 import asia.stampy.common.message.StampyMessage;
 import asia.stampy.common.message.StompMessageType;
@@ -83,7 +83,7 @@ public class SystemClient {
 
   private int messageCount;
 
-  private HostPort hostPort;
+  private URI uri;
 
   /**
    * Inits the.
@@ -96,8 +96,8 @@ public class SystemClient {
     gateway.addMessageListener(new StampyMessageListener() {
 
       @Override
-      public void messageReceived(StampyMessage<?> message, HostPort hostPort) throws Exception {
-        SystemClient.this.hostPort = hostPort;
+      public void messageReceived(StampyMessage<?> message, URI uri) throws Exception {
+        SystemClient.this.uri = uri;
         switch (message.getMessageType()) {
         case CONNECTED:
           connected = true;
@@ -247,7 +247,7 @@ public class SystemClient {
     sleep();
     evaluateError(SystemLoginHandler.SEE_THE_SYSTEM_ADMINISTRATOR);
 
-    System.out.println("Session is open (should not be)? " + gateway.isConnected(hostPort));
+    System.out.println("Session is open (should not be)? " + gateway.isConnected(uri));
   }
 
   public void testSubscription() throws Exception {

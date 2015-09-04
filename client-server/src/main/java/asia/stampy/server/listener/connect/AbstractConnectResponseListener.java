@@ -28,7 +28,7 @@ import asia.stampy.client.message.connect.ConnectMessage;
 import asia.stampy.client.message.stomp.StompMessage;
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.StampyMessageListener;
 import asia.stampy.common.message.StampyMessage;
 import asia.stampy.common.message.StompMessageType;
@@ -75,21 +75,21 @@ public abstract class AbstractConnectResponseListener<SVR extends AbstractStampy
    * stampy.common.message.StampyMessage, asia.stampy.common.HostPort)
    */
   @Override
-  public void messageReceived(StampyMessage<?> message, HostPort hostPort) throws Exception {
+  public void messageReceived(StampyMessage<?> message, URI uri) throws Exception {
     switch (message.getMessageType()) {
     case CONNECT:
-      sendConnected(((ConnectMessage) message).getHeader(), hostPort);
+      sendConnected(((ConnectMessage) message).getHeader(), uri);
       return;
     case STOMP:
-      sendConnected(((StompMessage) message).getHeader(), hostPort);
+      sendConnected(((StompMessage) message).getHeader(), uri);
       return;
     default:
       return;
     }
   }
 
-  private void sendConnected(ConnectHeader header, HostPort hostPort) throws InterceptException {
-    log.debug("Sending connected message to {}", hostPort);
+  private void sendConnected(ConnectHeader header, URI uri) throws InterceptException {
+    log.debug("Sending connected message to {}", uri);
     ConnectedMessage message = new ConnectedMessage("1.2");
 
     int requested = message.getHeader().getIncomingHeartbeat();
@@ -97,10 +97,10 @@ public abstract class AbstractConnectResponseListener<SVR extends AbstractStampy
       int heartbeat = Math.max(requested, getGateway().getHeartbeat());
       message.getHeader().setHeartbeat(heartbeat, header.getOutgoingHeartbeat());
     }
-    message.getHeader().setSession(hostPort.toString());
+    message.getHeader().setSession(uri.toString());
 
-    getGateway().sendMessage(message, hostPort);
-    log.debug("Sent connected message to {}", hostPort);
+    getGateway().sendMessage(message, uri);
+    log.debug("Sent connected message to {}", uri);
   }
 
   /**

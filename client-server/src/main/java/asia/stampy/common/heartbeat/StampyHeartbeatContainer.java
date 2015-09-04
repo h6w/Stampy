@@ -19,7 +19,7 @@
 package asia.stampy.common.heartbeat;
 
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 
 public interface StampyHeartbeatContainer {
 
@@ -30,35 +30,35 @@ public interface StampyHeartbeatContainer {
 
   /**
    * Starts a heartbeat for the specified host & port.
-   * @param hostPort
+   * @param uri
    * @param gateway
    * @param timeMillis
    */
-  public abstract void start(HostPort hostPort, AbstractStampyMessageGateway gateway, int timeMillis);
+  public abstract void start(URI uri, AbstractStampyMessageGateway gateway, int timeMillis);
 
   /**
    * Stops heartbeats to the specified {@link HostPort}.
    * 
-   * @param hostPort
+   * @param uri
    *          the host port
    */
-  public abstract void stop(HostPort hostPort);
+  public abstract void stop(URI uri);
 
   /**
    * Removes the {@link PaceMaker} specified by {@link HostPort}.
    * 
-   * @param hostPort
+   * @param uri
    *          the host port
    */
-  public abstract void remove(HostPort hostPort);
+  public abstract void remove(URI uri);
 
   /**
    * Resets the {@link PaceMaker} for the specified {@link HostPort}, preventing
    * a heartbeat from being sent.
    * 
-   * @param hostPort
+   * @param uri
    *          the host port
    */
-  public abstract void reset(HostPort hostPort);
+  public abstract void reset(URI uri);
 
 }

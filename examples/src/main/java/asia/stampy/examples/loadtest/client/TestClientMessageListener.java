@@ -25,7 +25,7 @@ import asia.stampy.client.message.ack.AckMessage;
 import asia.stampy.client.message.disconnect.DisconnectMessage;
 import asia.stampy.common.StampyLibrary;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway;
-import asia.stampy.common.gateway.HostPort;
+import java.net.URI;
 import asia.stampy.common.gateway.StampyMessageListener;
 import asia.stampy.common.message.StampyMessage;
 import asia.stampy.common.message.StompMessageType;
@@ -64,7 +64,7 @@ public class TestClientMessageListener implements StampyMessageListener {
    * org.apache.mina.core.session.IoSession, asia.stampy.common.HostPort)
    */
   @Override
-  public void messageReceived(StampyMessage<?> message, HostPort hostPort) throws Exception {
+  public void messageReceived(StampyMessage<?> message, URI uri) throws Exception {
     switch (message.getMessageType()) {
     case CONNECTED:
       connected = true;
