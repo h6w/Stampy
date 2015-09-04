@@ -38,7 +38,7 @@
 	<target name="clean">
 		<delete dir="${basedir}/build/bin" />
 		<mkdir dir="${basedir}/build/bin"/>
-		<delete dir="${basedir}/build/javadoc" />
+		<!-- <delete dir="${basedir}/build/javadoc" /> -->
 		<mkdir dir="${basedir}/build/javadoc"/>
 	</target>
 

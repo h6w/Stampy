@@ -138,7 +138,7 @@
 		<javadoc 
 			overview="${basedir}/build/tmp/Overview-stampy-examples.html" 
 			classpathref="stampy.classpath" 
-			sourcepath="${basedir}/examples;${basedir}/stampy-core/src;${basedir}/mina;${basedir}/netty;${basedir}/client-server" 
+			sourcepath="${basedir}/examples;${basedir}/stampy-core/src/main/java;${basedir}/mina;${basedir}/netty/src/main/java;${basedir}/client-server" 
 			packagenames="asia.stampy.*" 
 			destdir="${basedir}/build/javadoc">
 		</javadoc>

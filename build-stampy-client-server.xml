@@ -105,7 +105,7 @@
 	<target name="javadoc.stampy.client.server" depends="compile.stampy.client.server, create.overview">
 		<javadoc overview="${basedir}/build/tmp/Overview-stampy-client-server.html" 
 			classpathref="stampy.classpath" 
-			sourcepath="${basedir}/stampy-core/src/main/java;${basedir}/client-server" 
+			sourcepath="${basedir}/examples;${basedir}/stampy-core/src/main/java;${basedir}/client-server" 
 			packagenames="asia.stampy.*" 
 			destdir="${basedir}/build/javadoc">
 		</javadoc>
